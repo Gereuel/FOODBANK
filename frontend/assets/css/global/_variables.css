@@ -1,0 +1,104 @@
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL CSS VARIABLES
+   Centralized theme, colors, spacing, and typography
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+    /* ─ Color Palette ─ */
+    --green-dark: #1b4332;
+    --green-mid: #2d6a4f;
+    --green-main: #40916c;
+    --green-light: #d8f3dc;
+    --green-accent: #52b788;
+    
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f3;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    
+    --red-light: #fee2e2;
+    --red-main: #dc2626;
+    --red-dark: #991b1b;
+    
+    --white: #ffffff;
+    --black: #000000;
+    
+    /* ─ Backgrounds ─ */
+    --bg-primary: #f4f6f4;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #fafbfa;
+    
+    /* ─ Text Colors ─ */
+    --text-main: #1a1a1a;
+    --text-sub: #6b7280;
+    --text-muted: #9ca3af;
+    --text-light: rgba(255, 255, 255, 0.8);
+    --text-lighter: rgba(255, 255, 255, 0.6);
+    
+    /* ─ Borders ─ */
+    --border-color: #e0e7e4;
+    --border-light: #f0f0f0;
+    
+    /* ─ Shadows ─ */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 1px 4px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-xl: 0 10px 40px rgba(0, 0, 0, 0.2);
+    --shadow-overlay: 0 10px 40px rgba(0, 0, 0, 0.2);
+    
+    /* ─ Spacing ─ */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 20px;
+    --spacing-2xl: 24px;
+    --spacing-3xl: 28px;
+    --spacing-4xl: 32px;
+    --spacing-5xl: 40px;
+    
+    /* ─ Border Radius ─ */
+    --radius-sm: 7px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 99px;
+    
+    /* ─ Typography ─ */
+    --font-family-main: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-family-serif: 'Playfair Display', serif;
+    
+    --font-size-xs: 11px;
+    --font-size-sm: 12px;
+    --font-size-base: 13px;
+    --font-size-md: 13.5px;
+    --font-size-lg: 14px;
+    --font-size-xl: 16px;
+    --font-size-2xl: 18px;
+    --font-size-3xl: 20px;
+    --font-size-4xl: 24px;
+    --font-size-5xl: 28px;
+    --font-size-6xl: 32px;
+    
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    
+    /* ─ Transitions ─ */
+    --transition-fast: 0.15s;
+    --transition-base: 0.2s;
+    --transition-slow: 0.3s;
+    
+    /* ─ Z-Index Scale ─ */
+    --z-base: 1;
+    --z-dropdown: 100;
+    --z-sticky: 50;
+    --z-modal: 1000;
+    --z-tooltip: 1001;
+}
