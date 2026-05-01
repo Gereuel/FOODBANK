@@ -1,13 +1,13 @@
 <?php
 session_start();
-require_once '../config/database.php';
+require_once '../../../config/database.php';
 
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
-    header("Location: ../../../login.php?error=unauthorized");
+    header("Location: ../../../../login.php?error=unauthorized");
     exit();
 }
 
-$required = ['donor_account_id', 'item_type', 'quantity_description', 'foodbank_id', 'pickup_address', 'status', 'donation_time'];
+$required = ['donor_account_id', 'item_type', 'quantity_description', 'foodbank_id', 'pickup_address', 'date_donated', 'status', 'donation_time'];
 foreach ($required as $field) {
     if (empty($_POST[$field])) {
         header("Location: /foodbank/frontend/views/admin/admin_index.php?page=donations&error=missing_fields");
@@ -21,6 +21,7 @@ $item_description    = trim($_POST['item_description'] ?? '');
 $quantity            = trim($_POST['quantity_description']);
 $foodbank_id         = intval($_POST['foodbank_id']);
 $pickup_address      = trim($_POST['pickup_address']);
+$date_donated        = trim($_POST['date_donated']);
 $status              = trim($_POST['status']);
 $donation_time       = trim($_POST['donation_time']);
 $notes               = trim($_POST['notes'] ?? '');
@@ -29,7 +30,11 @@ $notes               = trim($_POST['notes'] ?? '');
 $allowed_types    = ['Food Items', 'Clothing', 'Cash Donation', 'Medicine', 'Perishable Goods', 'Other'];
 $allowed_statuses = ['Pending', 'In Transit', 'Received', 'Cancelled'];
 
-if (!in_array($item_type, $allowed_types) || !in_array($status, $allowed_statuses)) {
+if (
+    !in_array($item_type, $allowed_types, true) ||
+    !in_array($status, $allowed_statuses, true) ||
+    !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_donated)
+) {
     header("Location: /foodbank/frontend/views/admin/admin_index.php?page=donations&error=invalid_data");
     exit();
 }
@@ -37,7 +42,7 @@ if (!in_array($item_type, $allowed_types) || !in_array($status, $allowed_statuse
 // Handle proof of delivery upload
 $proof_url = null;
 if (!empty($_FILES['proof_of_delivery']['name'])) {
-    $upload_dir  = '../../../uploads/proof/';
+    $upload_dir  = '../../../../uploads/proof/';
     $ext         = pathinfo($_FILES['proof_of_delivery']['name'], PATHINFO_EXTENSION);
     $allowed_ext = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
 
@@ -46,9 +51,17 @@ if (!empty($_FILES['proof_of_delivery']['name'])) {
         exit();
     }
 
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0755, true);
+    }
+
     $filename  = uniqid('proof_', true) . '.' . $ext;
     $proof_url = '/foodbank/uploads/proof/' . $filename;
-    move_uploaded_file($_FILES['proof_of_delivery']['tmp_name'], $upload_dir . $filename);
+
+    if (!move_uploaded_file($_FILES['proof_of_delivery']['tmp_name'], $upload_dir . $filename)) {
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?page=donations&error=upload_failed");
+        exit();
+    }
 }
 
 try {
@@ -88,7 +101,7 @@ try {
             Notes,
             Date_Donated,
             Generated_On
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ");
 
     $stmt->execute([
@@ -102,7 +115,8 @@ try {
         $status,
         $donation_time,
         $proof_url,
-        $notes ?: null
+        $notes ?: null,
+        $date_donated
     ]);
 
     $pdo->commit();

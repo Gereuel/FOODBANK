@@ -23,16 +23,6 @@ function openSecurityModal(user) {
         ? 'security-btn security-btn--danger'
         : 'security-btn security-btn--success';
 
-    // 2FA toggle button
-    const twofaEnabled  = parseInt(user.Two_FA_Enabled) === 1;
-    const twofaLabel    = document.getElementById('twofa-label');
-    const toggle2faBtn  = document.getElementById('toggle-2fa-btn');
-    twofaLabel.textContent     = `2FA: ${twofaEnabled ? 'Enabled' : 'Disabled'}`;
-    toggle2faBtn.textContent   = twofaEnabled ? 'Disable 2FA' : 'Enable 2FA';
-    toggle2faBtn.className     = twofaEnabled
-        ? 'security-btn security-btn--danger'
-        : 'security-btn security-btn--success';
-
     // Hide reset link box on open
     document.getElementById('reset-link-box').style.display = 'none';
     document.getElementById('reset-link-value').value = '';
@@ -64,7 +54,7 @@ document.getElementById('send-reset-btn')?.addEventListener('click', function ()
         btn.textContent = 'Generating...';
         btn.disabled    = true;
 
-        fetch('/foodbank/backend/controllers/process_reset_token.php', {
+        fetch('/foodbank/backend/controllers/auth/password_reset_token.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `account_id=${accountId}`
@@ -108,7 +98,7 @@ document.getElementById('toggle-status-btn')?.addEventListener('click', function
 
         btn.disabled = true;
 
-        fetch('/foodbank/backend/controllers/process_toggle_status.php', {
+        fetch('/foodbank/backend/controllers/admin/users/process_toggle_status.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `account_id=${accountId}&status=${newStatus}`
@@ -128,39 +118,6 @@ document.getElementById('toggle-status-btn')?.addEventListener('click', function
                     : 'security-btn security-btn--success';
             } else {
                 alert('Error: ' + (data.message || 'Could not update status.'));
-            }
-        })
-        .catch(() => alert('Server error. Please try again.'))
-        .finally(() => btn.disabled = false);
-});
-
-// ── Toggle 2FA ─────────────────────────────────────────
-document.getElementById('toggle-2fa-btn')?.addEventListener('click', function () {
-        const accountId   = document.getElementById('security-account-id').value;
-        const btn         = this;
-        const currentText = btn.textContent.trim();
-        const newValue    = currentText === 'Enable 2FA' ? 1 : 0;
-
-        if (!confirm(`Are you sure you want to ${newValue ? 'enable' : 'disable'} 2FA for this account?`)) return;
-
-        btn.disabled = true;
-
-        fetch('/foodbank/backend/controllers/process_toggle_2fa.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `account_id=${accountId}&two_fa=${newValue}`
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                const twofaLabel = document.getElementById('twofa-label');
-                twofaLabel.textContent = `2FA: ${newValue ? 'Enabled' : 'Disabled'}`;
-                btn.textContent        = newValue ? 'Disable 2FA' : 'Enable 2FA';
-                btn.className          = newValue
-                    ? 'security-btn security-btn--danger'
-                    : 'security-btn security-btn--success';
-            } else {
-                alert('Error: ' + (data.message || 'Could not update 2FA.'));
             }
         })
         .catch(() => alert('Server error. Please try again.'))

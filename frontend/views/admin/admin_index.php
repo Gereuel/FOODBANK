@@ -105,7 +105,8 @@ try {
     <script src="../../assets/js/modals/security-user-modal.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/add-donation-modal.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/edit-donation-modal.js?v=<?php echo time(); ?>"></script>
-    <script src="../../assets/js/modals/delete-donation-modal.js?v=<?php echo time(); ?>"></script> 
+    <script src="../../assets/js/modals/delete-donation-modal.js?v=<?php echo time(); ?>"></script>
+    <script src="../../assets/js/modals/foodbank-modals.js?v=<?php echo time(); ?>"></script>
     
 </body>
 </html>

@@ -12,86 +12,78 @@ $offset   = ($page - 1) * $per_page;
 
 try {
     // Total count
-    $stmt_count = $pdo->query("SELECT COUNT(*) FROM DONATIONS");
+    $stmt_count = $pdo->query("SELECT COUNT(*) FROM FOOD_BANKS");
     $total      = $stmt_count->fetchColumn();
     $total_pages = ceil($total / $per_page);
 
-    // Fetch donations with donor and food bank info
+    // Total managers (FA accounts linked to food banks)
+    $stmt_mgr = $pdo->query("SELECT COUNT(*) FROM FOOD_BANKS WHERE Manager_Email IS NOT NULL");
+    $total_managers = $stmt_mgr->fetchColumn();
+
+    // Active food banks
+    $stmt_active = $pdo->query("SELECT COUNT(*) FROM FOOD_BANKS WHERE Org_Status = 'Active'");
+    $total_active = $stmt_active->fetchColumn();
+
+    // Fetch food banks
     $stmt = $pdo->prepare("
         SELECT
-            d.Donation_ID,
-            d.Tracking_Number,
-            d.Item_Type,
-            d.Item_Description,
-            d.Quantity_Description,
-            d.Pickup_Address,
-            d.Status,
-            d.Donation_Time,
-            d.Date_Donated,
-            d.Generated_On,
-            d.Proof_Of_Delivery_URL,
-            d.Notes,
-            -- Donor info
-            u.First_Name, u.Middle_Name, u.Last_Name,
-            u.Address AS Donor_Address,
-            u.Birthdate,
-            a.Email, a.Phone_Number, a.Custom_App_ID,
-            -- Food bank info
-            fb.Organization_Name,
-            fb.Physical_Address AS FoodBank_Address,
             fb.FoodBank_ID,
-            fb.Public_Phone AS FoodBank_Phone,
-            COALESCE(fb.Manager_First_Name, mu.First_Name) AS Manager_First,
-            COALESCE(fb.Manager_Last_Name, mu.Last_Name) AS Manager_Last,
-            COALESCE(fb.Manager_Phone, mfa.Phone_Number) AS Manager_Phone,
-            mfa.Custom_App_ID AS FoodBank_App_ID
-        FROM DONATIONS d
-        JOIN ACCOUNTS a  ON d.Donor_Account_ID = a.Account_ID
-        JOIN USERS u     ON a.User_ID = u.User_ID
-        JOIN FOOD_BANKS fb ON d.FoodBank_ID = fb.FoodBank_ID
-        LEFT JOIN ACCOUNTS mfa ON fb.Account_ID = mfa.Account_ID
-        LEFT JOIN USERS mu     ON mfa.User_ID = mu.User_ID
-        ORDER BY d.Date_Donated DESC
+            fb.Custom_FoodBank_ID,
+            fb.Organization_Name,
+            fb.Physical_Address,
+            fb.Public_Email,
+            fb.Public_Phone,
+            fb.Time_Open,
+            fb.Time_Close,
+            fb.Operating_Days,
+            fb.Legal_Documents_URL,
+            fb.Verification_Status,
+            fb.Org_Status,
+            fb.Org_Email,
+            fb.Date_Registered,
+            fb.Manager_First_Name,
+            fb.Manager_Last_Name,
+            fb.Manager_Email,
+            fb.Manager_Phone,
+            fb.Manager_Address
+        FROM FOOD_BANKS fb
+        ORDER BY fb.Date_Registered DESC
         LIMIT ? OFFSET ?
     ");
     $stmt->bindValue(1, $per_page, PDO::PARAM_INT);
     $stmt->bindValue(2, $offset,   PDO::PARAM_INT);
     $stmt->execute();
-    $donations = $stmt->fetchAll();
-
-    // Fetch donors for Add modal dropdown
-    $stmt_donors = $pdo->query("
-        SELECT a.Account_ID, a.Custom_App_ID, u.First_Name, u.Last_Name
-        FROM ACCOUNTS a JOIN USERS u ON a.User_ID = u.User_ID
-        WHERE a.Account_Type = 'PA'
-        ORDER BY u.First_Name
-    ");
-    $donors = $stmt_donors->fetchAll();
-
-    // Fetch food banks for Add modal dropdown
-    $stmt_banks = $pdo->query("
-        SELECT fb.FoodBank_ID, fb.Organization_Name
-        FROM FOOD_BANKS fb
-        WHERE fb.Verification_Status = 'Approved'
-        ORDER BY fb.Organization_Name
-    ");
-    $foodbanks = $stmt_banks->fetchAll();
+    $foodbanks = $stmt->fetchAll();
 
 } catch (PDOException $e) {
     die("Database Error: " . $e->getMessage());
 }
 
-$status_classes = [
-    'Pending'    => 'badge-pending',
-    'In Transit' => 'badge-transit',
-    'Received'   => 'badge-active',
-    'Cancelled'  => 'badge-inactive',
+$verification_classes = [
+    'Pending'   => 'badge-pending',
+    'Approved'  => 'badge-active',
+    'Suspended' => 'badge-inactive',
 ];
+
+$org_status_classes = [
+    'Active'    => 'badge-active',
+    'Pending'   => 'badge-pending',
+    'Suspended' => 'badge-inactive',
+];
+
+function formatTime($time) {
+    if (!$time) return '—';
+    return date('g:i A', strtotime($time));
+}
 ?>
 
 <?php if (isset($_GET['success'])): ?>
 <div class="alert alert-success">
-    <?php $msgs = ['donation_added' => 'Donation report added successfully.'];
+    <?php $msgs = [
+        'foodbank_added'   => 'Food bank registered successfully.',
+        'foodbank_updated' => 'Food bank updated successfully.',
+        'foodbank_deleted' => 'Food bank deleted successfully.',
+    ];
     echo $msgs[$_GET['success']] ?? 'Action completed.'; ?>
 </div>
 <?php endif; ?>
@@ -99,14 +91,11 @@ $status_classes = [
 <?php if (isset($_GET['error'])): ?>
 <div class="alert alert-error">
     <?php $msgs = [
-        'donation_added'   => 'Donation report added successfully.',
-        'donation_updated' => 'Donation report updated successfully.',
-        'donation_deleted' => 'Donation report deleted successfully.',
-        'missing_fields'   => 'Please fill in all required fields.',
-        'invalid_data'     => 'Invalid data submitted.',
-        'invalid_file'     => 'Invalid file type. Use JPG, PNG, or PDF.',
-        'upload_failed'    => 'File upload failed. Please try again.',
-        'db_error'         => 'A database error occurred. Please try again.',
+        'missing_fields'  => 'Please fill in all required fields.',
+        'email_taken'     => 'That email is already in use.',
+        'invalid_file'    => 'Invalid file type.',
+        'upload_failed'   => 'File upload failed.',
+        'db_error'        => 'A database error occurred.',
     ];
     echo $msgs[$_GET['error']] ?? 'An unexpected error occurred.'; ?>
 </div>
@@ -114,39 +103,29 @@ $status_classes = [
 
 <section class="content-area">
     <header class="page-header">
-        <h2>Donations Made by Donors</h2>
-        <p>Track all donations made by donors to food banks.</p>
-        <button class="btn-add" onclick="openAddDonationModal()">
+        <h2>Food Bank Management Overview</h2>
+        <p>Monitor and manage all registered food banks.</p>
+        <button class="btn-add" onclick="openAddFoodBankModal()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            Add Donation Report
+            Add Food Bank
         </button>
     </header>
 
     <!-- Stat Cards -->
     <div class="stat-row">
         <div class="stat-card">
-            <div class="label">Total Donations</div>
+            <div class="label">Total Food Banks</div>
             <div class="value"><?= $total ?></div>
         </div>
         <div class="stat-card">
-            <div class="label">Received</div>
-            <div class="value green">
-                <?php
-                $stmt_r = $pdo->query("SELECT COUNT(*) FROM DONATIONS WHERE Status='Received'");
-                echo $stmt_r->fetchColumn();
-                ?>
-            </div>
+            <div class="label">Active</div>
+            <div class="value green"><?= $total_active ?></div>
         </div>
         <div class="stat-card">
-            <div class="label">In Transit</div>
-            <div class="value">
-                <?php
-                $stmt_t = $pdo->query("SELECT COUNT(*) FROM DONATIONS WHERE Status='In Transit'");
-                echo $stmt_t->fetchColumn();
-                ?>
-            </div>
+            <div class="label">Total Food Bank Managers</div>
+            <div class="value"><?= $total_managers ?></div>
         </div>
     </div>
 
@@ -159,37 +138,33 @@ $status_classes = [
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <input type="text" id="search-input" placeholder="Search donations...">
+                <input type="text" id="search-input" placeholder="Search food banks...">
             </div>
 
-            <!-- Status Filter -->
+            <!-- Filter -->
             <div class="toolbar-filter-wrap">
                 <button class="toolbar-btn" id="filter-btn">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
                     </svg>
-                    Status
+                    Filter
                     <span class="filter-badge" id="filter-badge" style="display:none;"></span>
                 </button>
                 <div class="filter-dropdown" id="filter-dropdown">
                     <div class="filter-section">
-                        <label class="filter-label">Status</label>
+                        <label class="filter-label">Verification Status</label>
                         <div class="filter-options">
-                            <label class="filter-option"><input type="checkbox" name="status" value="Pending"> Pending</label>
-                            <label class="filter-option"><input type="checkbox" name="status" value="In Transit"> In Transit</label>
-                            <label class="filter-option"><input type="checkbox" name="status" value="Received"> Received</label>
-                            <label class="filter-option"><input type="checkbox" name="status" value="Cancelled"> Cancelled</label>
+                            <label class="filter-option"><input type="checkbox" name="verification" value="Pending"> Pending</label>
+                            <label class="filter-option"><input type="checkbox" name="verification" value="Approved"> Approved</label>
+                            <label class="filter-option"><input type="checkbox" name="verification" value="Suspended"> Suspended</label>
                         </div>
                     </div>
                     <div class="filter-section">
-                        <label class="filter-label">Item Type</label>
+                        <label class="filter-label">Org Status</label>
                         <div class="filter-options">
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Food Items"> Food Items</label>
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Clothing"> Clothing</label>
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Cash Donation"> Cash Donation</label>
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Medicine"> Medicine</label>
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Perishable Goods"> Perishable Goods</label>
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Other"> Other</label>
+                            <label class="filter-option"><input type="checkbox" name="org_status" value="Active"> Active</label>
+                            <label class="filter-option"><input type="checkbox" name="org_status" value="Pending"> Pending</label>
+                            <label class="filter-option"><input type="checkbox" name="org_status" value="Suspended"> Suspended</label>
                         </div>
                     </div>
                     <div class="filter-actions">
@@ -246,43 +221,41 @@ $status_classes = [
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Donor</th>
-                    <th>Item</th>
-                    <th>Quantity</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Office #</th>
                     <th>Location</th>
-                    <th>Date</th>
-                    <th>Food Bank</th>
                     <th>Status</th>
+                    <th>ID</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($donations as $d): ?>
+                <?php foreach ($foodbanks as $fb): ?>
                 <tr>
-                    <td><?= htmlspecialchars($d['First_Name'] . ' ' . $d['Last_Name']) ?></td>
-                    <td><?= htmlspecialchars($d['Item_Type']) ?></td>
-                    <td><?= htmlspecialchars($d['Quantity_Description']) ?></td>
-                    <td><?= htmlspecialchars(substr($d['Pickup_Address'], 0, 30)) . (strlen($d['Pickup_Address']) > 30 ? '...' : '') ?></td>
-                    <td><?= date('M j, Y', strtotime($d['Date_Donated'])) ?></td>
-                    <td><?= htmlspecialchars($d['Organization_Name']) ?></td>
+                    <td><?= htmlspecialchars($fb['Organization_Name']) ?></td>
+                    <td><?= htmlspecialchars($fb['Org_Email'] ?? $fb['Public_Email'] ?? '—') ?></td>
+                    <td><?= formatTime($fb['Time_Open']) ?> - <?= formatTime($fb['Time_Close']) ?></td>
+                    <td><?= htmlspecialchars(substr($fb['Physical_Address'], 0, 30)) . (strlen($fb['Physical_Address']) > 30 ? '...' : '') ?></td>
                     <td>
-                        <span class="badge <?= $status_classes[$d['Status']] ?? 'badge-pending' ?>">
-                            <?= htmlspecialchars($d['Status']) ?>
+                        <span class="badge <?= $verification_classes[$fb['Verification_Status']] ?? 'badge-pending' ?>">
+                            <?= htmlspecialchars($fb['Verification_Status']) ?>
                         </span>
                     </td>
+                    <td><?= htmlspecialchars($fb['Custom_FoodBank_ID'] ?? '—') ?></td>
                     <td>
                         <div class="action-group">
-                            <!-- View Report -->
-                            <button class="action-btn" title="View Report"
-                                onclick="openDonationReport(<?= htmlspecialchars(json_encode($d)) ?>)">
+                            <!-- View -->
+                            <button class="action-btn" title="View"
+                                onclick="openViewFoodBankModal(<?= htmlspecialchars(json_encode($fb)) ?>)">
                                 <svg width="15" height="15" fill="none" stroke="#374151" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                     <circle cx="12" cy="12" r="3"/>
                                 </svg>
                             </button>
-                            <!-- Edit Status -->
+                            <!-- Edit -->
                             <button class="action-btn" title="Edit"
-                                onclick="openEditDonationModal(<?= htmlspecialchars(json_encode($d)) ?>)">
+                                onclick="openEditFoodBankModal(<?= htmlspecialchars(json_encode($fb)) ?>)">
                                 <svg width="15" height="15" fill="none" stroke="#374151" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                                     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -290,7 +263,7 @@ $status_classes = [
                             </button>
                             <!-- Delete -->
                             <button class="action-btn delete" title="Delete"
-                                onclick="openDeleteDonationModal(<?= htmlspecialchars(json_encode($d)) ?>)">
+                                onclick="openDeleteFoodBankModal(<?= htmlspecialchars(json_encode($fb)) ?>)">
                                 <svg width="15" height="15" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24">
                                     <polyline points="3 6 5 6 21 6"/>
                                     <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
@@ -302,10 +275,10 @@ $status_classes = [
                     </td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($donations)): ?>
+                <?php if (empty($foodbanks)): ?>
                 <tr>
-                    <td colspan="8" style="text-align:center; padding: var(--spacing-3xl); color: var(--gray-400);">
-                        No donations found.
+                    <td colspan="7" style="text-align:center; padding: var(--spacing-3xl); color: var(--gray-400);">
+                        No food banks registered yet.
                     </td>
                 </tr>
                 <?php endif; ?>
@@ -315,8 +288,8 @@ $status_classes = [
         <!-- Pagination -->
         <div class="table-footer">
             <div class="pagination-info">
-                Showing <strong><?= $total > 0 ? ($offset + 1) : 0 ?>–<?= min($offset + count($donations), $total) ?></strong>
-                of <strong><?= $total ?></strong> donations
+                Showing <strong><?= $total > 0 ? ($offset + 1) : 0 ?>–<?= min($offset + count($foodbanks), $total) ?></strong>
+                of <strong><?= $total ?></strong> Food Banks
             </div>
             <div class="pagination">
                 <?php if ($page > 1): ?>
@@ -345,11 +318,7 @@ $status_classes = [
 </section>
 
 <!-- Modals -->
-<?php require_once 'modals/donation-report-modal.php'; ?>
-<?php require_once 'modals/add-donation-modal.php'; ?>
-<?php require_once 'modals/edit-donation-modal.php'; ?>
-<?php require_once 'modals/delete-donation-modal.php'; ?>
-
-<!-- Modal Scripts -->
-<script src="/foodbank/frontend/assets/js/modals/donation-modals.js"></script>
-<script src="/foodbank/frontend/assets/js/modals/toolbar.js"></script>
+<?php require_once 'modals/add-foodbank-modal.php'; ?>
+<?php require_once 'modals/view-foodbank-modal.php'; ?>
+<?php require_once 'modals/edit-foodbank-modal.php'; ?>
+<?php require_once 'modals/delete-foodbank-modal.php'; ?>

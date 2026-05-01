@@ -1,5 +1,5 @@
 <?php
-require_once '../config/database.php';
+require_once '../../config/database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
@@ -60,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Save the changes
         $pdo->commit();
         
-        header("Location: ../../login.php?status=success");
+        header("Location: ../../../login.php?status=success");
         exit();
 
     } catch (PDOException $e) {

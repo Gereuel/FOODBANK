@@ -54,7 +54,7 @@ try {
         <div class="logo">Food Bank App</div>
         <div class="nav-links">
             <h2>Welcome, <?php echo htmlspecialchars($_SESSION['First_Name'] . ' ' . $_SESSION['Last_Name']); ?>!</h2>
-            <a href="../../../backend/controllers/logout.php" style="color: red; text-decoration: none; margin-left: 15px;">Log Out</a>
+            <a href="../../../backend/controllers/auth/logout.php" style="color: red; text-decoration: none; margin-left: 15px;">Log Out</a>
         </div>
     </nav>
 </body>
@@ -101,7 +101,7 @@ try {
       <a href="pa_donors.php"><button>Donors</button></a>
       <a href="#"><button>Donation</button></a>
       <a href="#"><button>Account</button></a>
-      <a href="../../../backend/controllers/logout.php"><button style="color:red;">Logout</button></a>
+      <a href="../../../backend/controllers/auth/logout.php"><button style="color:red;">Logout</button></a>
     </nav>
 
   </aside>

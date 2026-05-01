@@ -11,7 +11,7 @@
         </div>
 
         <div class="modal-body">
-            <form action="/foodbank/backend/controllers/process_add_user.php" method="POST">
+            <form action="/foodbank/backend/controllers/admin/users/process_add_user.php" method="POST">
 
                 <h3>Account Details</h3>
                 <select name="account_type" required>

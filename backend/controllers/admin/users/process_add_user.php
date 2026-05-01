@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../config/database.php';
+require_once '../../../config/database.php';
 
 // --- CRITICAL SECURITY CHECK ---
 // Only allow access if the user is logged in AND is an Admin ('AA')

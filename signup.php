@@ -28,7 +28,7 @@
       <span id="dot2"></span>
     </div>
 
-    <form action="backend/controllers/process_signup.php" method="POST" id="signupForm">
+    <form action="backend/controllers/auth/process_signup.php" method="POST" id="signupForm">
 
       <!-- ======================== -->
       <!-- STEP 1: PERSONAL INFO    -->

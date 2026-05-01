@@ -1,3 +1,10 @@
+<?php
+/**
+ * @var array $donors    Injected from donations.php
+ * @var array $foodbanks Injected from donations.php
+ */
+?>
+
 <!-- Add Donation Modal -->
 <div id="addDonationModal" class="modal">
     <div class="modal-content">
@@ -9,7 +16,7 @@
             <button class="modal-close" onclick="closeAddDonationModal()">&times;</button>
         </div>
         <div class="modal-body">
-            <form action="/foodbank/backend/controllers/process_add_donation.php" method="POST" enctype="multipart/form-data">
+            <form action="/foodbank/backend/controllers/admin/donations/process_add_donations.php" method="POST" enctype="multipart/form-data">
 
                 <h3>Donor</h3>
                 <select name="donor_account_id" required>

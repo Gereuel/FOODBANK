@@ -38,7 +38,7 @@
                 </div>
             </div>
 
-            <form action="/foodbank/backend/controllers/process_delete_user.php" method="POST">
+            <form action="/foodbank/backend/controllers/admin/users/process_delete_user.php" method="POST">
                 <input type="hidden" name="user_id" id="delete-user-id">
                 <input type="hidden" name="account_id" id="delete-account-id">
 

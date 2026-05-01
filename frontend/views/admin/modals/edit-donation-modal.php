@@ -9,7 +9,7 @@
             <button class="modal-close" onclick="closeEditDonationModal()">&times;</button>
         </div>
         <div class="modal-body">
-            <form action="/foodbank/backend/controllers/process_edit_donation.php" method="POST" enctype="multipart/form-data">
+            <form action="/foodbank/backend/controllers/admin/donations/process_edit_donation.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="donation_id" id="edit-donation-id">
 
                 <h3>Status</h3>

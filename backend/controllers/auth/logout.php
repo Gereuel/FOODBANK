@@ -16,6 +16,6 @@ if (ini_get("session.use_cookies")) {
 session_destroy();
 
 // Redirect the user back to the login page
-header("Location: ../../login.php?status=logged_out");
+header("Location: ../../../login.php?status=logged_out");
 exit();
 ?>

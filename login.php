@@ -29,22 +29,30 @@ require_once 'backend/config/database.php';
 
       <?php 
       // Display error or success messages
-      if(isset($_GET['error'])) {
-          if($_GET['error'] == 'empty_fields') {
-              echo '<p style="color: #8F1402; margin-bottom: 15px; font-size: 14px; font-weight: 500;">Please fill in all fields.</p>';
-          } elseif($_GET['error'] == 'invalid_credentials') {
-              echo '<p style="color: #8F1402; margin-bottom: 15px; font-size: 14px; font-weight: 500;">Incorrect email or password. Please try again.</p>';
-          }
-      } elseif(isset($_GET['status'])) {
-          if($_GET['status'] == 'success') {
-              echo '<p style="color: #3E8B34; margin-bottom: 15px; font-size: 14px; font-weight: 500;">Registration successful! Please log in.</p>';
-          } elseif($_GET['status'] == 'logged_out') {
-              echo '<p style="color: #3E8B34; margin-bottom: 15px; font-size: 14px; font-weight: 500;">You have been successfully logged out.</p>';
+      if (isset($_GET['error'])) {
+          $errors = [
+              'empty_fields'       => 'Please fill in all fields.',
+              'invalid_credentials'=> 'Incorrect email or password. Please try again.',
+              'account_disabled'   => 'Your account has been disabled. Please contact an administrator.',
+              'unknown_account_type' => 'Unknown account type. Please contact support.',
+          ];
+          $msg = $errors[$_GET['error']] ?? 'An unexpected error occurred.';
+          echo '<p style="color: #8F1402; margin-bottom: 15px; font-size: 14px; font-weight: 500;">' . $msg . '</p>';
+
+      } elseif (isset($_GET['status'])) {
+          $statuses = [
+              'success'        => 'Registration successful! Please log in.',
+              'logged_out'     => 'You have been successfully logged out.',
+              'password_reset' => 'Password reset successfully! Please log in.',
+          ];
+          $msg = $statuses[$_GET['status']] ?? null;
+          if ($msg) {
+              echo '<p style="color: #3E8B34; margin-bottom: 15px; font-size: 14px; font-weight: 500;">' . $msg . '</p>';
           }
       }
       ?>
 
-      <form action="backend/controllers/process_login.php" method="POST" class="login-form">
+      <form action="backend/controllers/auth/process_login.php" method="POST" class="login-form">
         <label>Email Address</label>
         <input type="email" name="email" placeholder="your.email@example.com" required>
 
@@ -52,7 +60,7 @@ require_once 'backend/config/database.php';
           <label>Password</label>
         </div>
         <input type="password" name="password" placeholder="Enter your password" required>
-        <a href="#" class="forgot-pass">Forgot password?</a>
+        <a href="frontend/views/auth/forgot-password.php" class="forgot-pass">Forgot password?</a>
 
         <button type="submit" class="btn">Login</button>
 

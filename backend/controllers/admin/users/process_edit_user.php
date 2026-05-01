@@ -1,10 +1,10 @@
 <?php
 session_start();
-require_once '../config/database.php';
+require_once '../../../config/database.php';
 
 // Security check
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
-    header("Location: ../../../login.php?error=unauthorized");
+    header("Location: ../../../../login.php?error=unauthorized");
     exit();
 }
 

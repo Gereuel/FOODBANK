@@ -55,7 +55,7 @@ try {
         <div class="nav-links">
             <h2>Welcome, <?php echo htmlspecialchars($firstName . ' ' . $lastName); ?>!</h2>
             <p><?php echo htmlspecialchars($email); ?></p>
-            <a href="../../../backend/controllers/logout.php" style="color: red; text-decoration: none; margin-left: 15px;">Log Out</a>
+            <a href="../../../backend/controllers/auth/logout.php" style="color: red; text-decoration: none; margin-left: 15px;">Log Out</a>
         </div>
     </nav>
 

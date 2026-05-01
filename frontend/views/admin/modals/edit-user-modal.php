@@ -11,7 +11,7 @@
         </div>
 
         <div class="modal-body">
-            <form action="/foodbank/backend/controllers/process_edit_user.php" method="POST">
+            <form action="/foodbank/backend/controllers/admin/users/process_edit_user.php" method="POST">
                 <input type="hidden" name="user_id" id="edit-user-id">
                 <input type="hidden" name="account_id" id="edit-account-id">
 

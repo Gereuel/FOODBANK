@@ -1,6 +1,6 @@
 <!-- Sidebar Header -->
 <div class="sidebar-header">
-    <img src="../../assets/images/logo.png" alt="Logo" class="logo-img">
+    <img src="/foodbank/frontend/assets/images/logo.png" alt="Logo" class="logo-img">
     <div class="logo-text">
         <h1>Food Bank</h1>
         <span>Admin Panel</span>
@@ -42,7 +42,7 @@
             </a>
             <!-- The 'submenu' class ensures this is hidden by default via CSS -->
             <ul class="submenu">
-                <li><a href="#" class="nav-link dropdown-item" data-target="#">Overview</a></li>
+                <li><a href="#" class="nav-link dropdown-item" data-target="/foodbank/frontend/views/admin/foodbanks.php">Overview</a></li>
                 <li><a href="#" class="nav-link dropdown-item" data-target="#">Managers Info</a></li>
             </ul>
         </li>
@@ -65,7 +65,7 @@
 
 <!-- Sidebar Footer (Logout) -->
 <div class="sidebar-footer">
-    <a href="../../../backend/controllers/logout.php" class="logout-btn">
+    <a href="/foodbank/backend/controllers/auth/logout.php" class="logout-btn">
         <i class="fas fa-sign-out-alt"></i>
         <span class="menu-text">Logout</span>
     </a>

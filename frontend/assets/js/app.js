@@ -27,6 +27,7 @@ function initPageScripts() {
     if (typeof initDeleteModal   === 'function') initDeleteModal();
     if (typeof initSecurityModal === 'function') initSecurityModal();
     if (typeof initDonationModals === 'function') initDonationModals();
+    if (typeof initFoodBankModals === 'function') initFoodBankModals();
 }
 
 // Function to update the Topbar Profile UI

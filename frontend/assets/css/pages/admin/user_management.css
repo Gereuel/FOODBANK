@@ -1251,3 +1251,78 @@
     color: var(--text-main);
     line-height: 1.6;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   STEPPER
+   ───────────────────────────────────────────────────────────── */
+
+.stepper {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-2xl) var(--spacing-2xl) 0;
+    gap: 0;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-shrink: 0;
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: var(--gray-200);
+    color: var(--gray-500);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-base);
+    display: grid;
+    place-items: center;
+    transition: all var(--transition-base);
+}
+
+.step.active .step-circle {
+    background: var(--green-dark);
+    color: var(--white);
+}
+
+.step.completed .step-circle {
+    background: var(--green-main);
+    color: var(--white);
+}
+
+.step-label {
+    font-size: var(--font-size-sm);
+    color: var(--gray-400);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+}
+
+.step.active .step-label {
+    color: var(--green-dark);
+    font-weight: var(--font-weight-semibold);
+}
+
+.step.completed .step-label {
+    color: var(--green-main);
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--gray-200);
+    margin-bottom: 22px;
+}
+
+.modal-content--lg {
+    max-width: 680px;
+}
+
+.step-desc {
+    font-size: var(--font-size-base);
+    color: var(--text-sub);
+    margin-bottom: var(--spacing-lg);
+}

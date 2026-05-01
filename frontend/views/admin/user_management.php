@@ -15,7 +15,7 @@ $offset = ($page - 1) * $per_page;
 
 try {
     // Get total count of users
-    $stmt_count = $pdo->prepare("SELECT COUNT(*) as count FROM USERS");
+    $stmt_count = $pdo->prepare("SELECT COUNT(*) as count FROM ACCOUNTS");
     $stmt_count->execute();
     $total_users = $stmt_count->fetch()['count'];
     $total_pages = ceil($total_users / $per_page);
@@ -23,13 +23,6 @@ try {
     // Fetch users with their account info
     $stmt = $pdo->prepare("
         SELECT 
-            u.User_ID,
-            u.First_Name,
-            u.Middle_Name,
-            u.Last_Name,
-            u.Suffix,
-            u.Address,
-            u.Birthdate,
             a.Account_ID,
             a.Account_Type,
             a.Custom_App_ID,
@@ -37,10 +30,27 @@ try {
             a.Phone_Number,
             a.Date_Created,
             a.Status,
-            a.Two_FA_Enabled,
-            a.Reset_Token
-        FROM USERS u
-        JOIN ACCOUNTS a ON u.User_ID = a.User_ID
+            a.Reset_Token,
+            -- Conditionally show org name for FA, personal name for others
+            CASE 
+                WHEN a.Account_Type = 'FA' THEN fb.Organization_Name
+                ELSE CONCAT(u.First_Name, ' ', COALESCE(u.Middle_Name, ''), ' ', u.Last_Name)
+            END AS Display_Name,
+            -- Still fetch individual fields for modals
+            u.User_ID,
+            u.First_Name,
+            u.Middle_Name,
+            u.Last_Name,
+            u.Suffix,
+            u.Address,
+            u.Birthdate,
+            -- Food bank fields for FA accounts
+            fb.Organization_Name,
+            fb.FoodBank_ID,
+            fb.Physical_Address AS FB_Address
+        FROM ACCOUNTS a
+        LEFT JOIN USERS u ON a.User_ID = u.User_ID
+        LEFT JOIN FOOD_BANKS fb ON a.Account_ID = fb.Account_ID
         ORDER BY a.Date_Created DESC
         LIMIT ? OFFSET ?
     ");
@@ -236,53 +246,62 @@ try {
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($users as $user): 
-                    $full_name = $user['First_Name'] . ' ' . ($user['Middle_Name'] ? $user['Middle_Name'] . ' ' : '') . $user['Last_Name'];
-                    $role_map = ['PA' => 'Donor', 'FA' => 'Food Bank Manager', 'AA' => 'Admin'];
-                    $role_display = $role_map[$user['Account_Type']] ?? $user['Account_Type'];
-                ?>
-                <tr>
-                    <td><?= htmlspecialchars($full_name) ?></td>
-                    <td><?= htmlspecialchars($user['Email']) ?></td>
-                    <td><?= htmlspecialchars($role_display) ?></td>
-                    <td><?= htmlspecialchars(substr($user['Address'], 0, 40) . (strlen($user['Address']) > 40 ? '...' : '')) ?></td>
-                    <td>
-                        <span class="badge badge-active">
-                            Active
-                        </span>
-                    </td>
+                    <?php foreach ($users as $user): 
+                        // Use Display_Name from SQL for the name column
+                        $display_name = $user['Display_Name'];
+                        $role_map     = ['PA' => 'Donor', 'FA' => 'Food Bank Account', 'AA' => 'Admin'];
+                        $role_display = $role_map[$user['Account_Type']] ?? $user['Account_Type'];
+
+                        // For FA accounts, use FB address; for others use user address
+                        $location = $user['Account_Type'] === 'FA'
+                            ? ($user['FB_Address'] ?? '—')
+                            : ($user['Address'] ?? '—');
+                    ?>
+                    <tr>
+                        <td><?= htmlspecialchars($display_name) ?></td>
+                        <td><?= htmlspecialchars($user['Email']) ?></td>
+                        <td><?= htmlspecialchars($role_display) ?></td>
+                        <td><?= htmlspecialchars(substr($location, 0, 40) . (strlen($location) > 40 ? '...' : '')) ?></td>
+                        <td>
+                            <span class="badge <?= $user['Status'] === 'Active' ? 'badge-active' : 'badge-inactive' ?>">
+                                <?= htmlspecialchars($user['Status']) ?>
+                            </span>
+                        </td>
                     <td><?= htmlspecialchars($user['Custom_App_ID']) ?></td>
-                    <td>
-                        <div class="action-group">
-                            <!-- View -->
-                            <button class="action-btn" title="View"
-                                onclick="openViewModal(<?= htmlspecialchars(json_encode($user)) ?>)">
-                                <svg width="15" height="15" fill="none" stroke="#374151" stroke-width="2" viewBox="0 0 24 24">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </button>
-                            <!-- Edit -->
-                            <button class="action-btn" title="Edit"
-                                onclick="openEditModal(<?= htmlspecialchars(json_encode($user)) ?>)">
-                                <svg width="15" height="15" fill="none" stroke="#374151" stroke-width="2" viewBox="0 0 24 24">
-                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                </svg>
-                            </button>
-                            <!-- Delete -->
-                            <button class="action-btn delete" title="Delete"
-                                onclick="openDeleteModal(<?= htmlspecialchars(json_encode($user)) ?>)">
-                                <svg width="15" height="15" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                                    <path d="M10 11v6M14 11v6"/>
-                                    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
+                        <td>
+                            <div class="action-group">
+                                <!-- View — always visible -->
+                                <button class="action-btn" title="View"
+                                    onclick="openViewModal(<?= htmlspecialchars(json_encode($user)) ?>)">
+                                    <svg width="15" height="15" fill="none" stroke="#374151" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+
+                                <?php if ($user['Account_Type'] !== 'FA'): ?>
+                                    <!-- Edit -->
+                                    <button class="action-btn" title="Edit"
+                                        onclick="openEditModal(<?= htmlspecialchars(json_encode($user)) ?>)">
+                                        <svg width="15" height="15" fill="none" stroke="#374151" stroke-width="2" viewBox="0 0 24 24">
+                                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                        </svg>
+                                    </button>
+                                    <!-- Delete -->
+                                    <button class="action-btn delete" title="Delete"
+                                        onclick="openDeleteModal(<?= htmlspecialchars(json_encode($user)) ?>)">
+                                        <svg width="15" height="15" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24">
+                                            <polyline points="3 6 5 6 21 6"/>
+                                            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                                            <path d="M10 11v6M14 11v6"/>
+                                            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                                        </svg>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>

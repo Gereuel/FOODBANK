@@ -82,30 +82,6 @@
                     <button class="security-btn" id="toggle-status-btn">Disable Account</button>
                 </div>
             </div>
-
-            <!-- Section 3: Two-Factor Authentication -->
-            <div class="security-section">
-                <div class="security-section-header">
-                    <div class="security-section-icon">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="security-section-title">Two-Factor Authentication</div>
-                        <div class="security-section-desc">Force enable or disable 2FA for this account.</div>
-                    </div>
-                </div>
-                <div class="security-toggle-row">
-                    <span class="security-toggle-label" id="twofa-label">2FA: Disabled</span>
-                    <button class="security-btn" id="toggle-2fa-btn">Enable 2FA</button>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" onclick="closeSecurityModal()">Close</button>
-            </div>
-
         </div>
     </div>
 </div>
