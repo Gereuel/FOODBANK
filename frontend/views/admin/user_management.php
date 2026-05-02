@@ -233,6 +233,7 @@ try {
         </div>
 
         <!-- Table -->
+        <div class="table-scroll">
         <table class="data-table">
             <thead>
                 <tr>
@@ -305,6 +306,7 @@ try {
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
 
         <!-- Footer / Pagination -->
         <div class="table-footer">
@@ -352,3 +354,4 @@ try {
 <script src="/foodbank/frontend/assets/js/modals/delete-user-modal.js"></script>
 <script src="/foodbank/frontend/assets/js/modals/security-user-modal.js"></script>
 <script src="/foodbank/frontend/assets/js/modals/toolbar.js"></script>
+<script src="/foodbank/frontend/asstes/js/modals/magers-modals.php"></script>

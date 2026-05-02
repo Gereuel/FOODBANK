@@ -1,0 +1,271 @@
+html {
+    scroll-behavior: smooth;
+}
+
+.sidebar {
+    animation: adminSlideRight .55s ease both;
+}
+
+.topbar {
+    animation: adminFadeDown .55s .08s ease both;
+}
+
+.main-content {
+    animation: adminFadeIn .55s .12s ease both;
+}
+
+#main-display,
+.content-area,
+.page-header {
+    animation: adminFadeUp .55s .16s ease both;
+}
+
+.page-header h2,
+.page-header p,
+.page-header .btn-add {
+    animation: adminFadeUp .5s ease both;
+}
+
+.page-header h2 {
+    animation-delay: .18s;
+}
+
+.page-header p {
+    animation-delay: .24s;
+}
+
+.page-header .btn-add {
+    animation-delay: .3s;
+}
+
+.metric-card,
+.stat-card {
+    animation: adminFadeUp .55s ease both;
+    transition:
+        transform var(--transition-base),
+        box-shadow var(--transition-base),
+        border-color var(--transition-fast);
+}
+
+.metrics-grid .metric-card:nth-child(1),
+.stat-row .stat-card:nth-child(1) {
+    animation-delay: .24s;
+}
+
+.metrics-grid .metric-card:nth-child(2),
+.stat-row .stat-card:nth-child(2) {
+    animation-delay: .31s;
+}
+
+.metrics-grid .metric-card:nth-child(3),
+.stat-row .stat-card:nth-child(3) {
+    animation-delay: .38s;
+}
+
+.metrics-grid .metric-card:nth-child(4),
+.stat-row .stat-card:nth-child(4) {
+    animation-delay: .45s;
+}
+
+.metric-card:hover,
+.stat-card:hover {
+    transform: translateY(-4px);
+}
+
+.table-card {
+    animation: adminFadeUp .6s .34s ease both;
+}
+
+.table-toolbar {
+    animation: adminFadeUp .5s .42s ease both;
+}
+
+.toolbar-btn,
+.btn-add,
+.action-btn,
+.security-btn,
+.report-action-btn,
+.copy-btn,
+.filter-apply-btn,
+.filter-reset-btn,
+.export-option-btn {
+    transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.toolbar-btn:hover,
+.btn-add:hover,
+.action-btn:hover,
+.security-btn:hover,
+.report-action-btn:hover,
+.copy-btn:hover,
+.filter-apply-btn:hover,
+.filter-reset-btn:hover,
+.export-option-btn:hover {
+    transform: translateY(-2px);
+}
+
+.toolbar-search,
+.search-container,
+.reset-link-row input {
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast);
+}
+
+.toolbar-search:focus-within,
+.search-container:focus-within,
+.reset-link-row input:focus {
+    box-shadow: 0 0 0 3px rgba(64, 145, 108, .14);
+}
+
+.data-table tbody tr {
+    transition:
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.data-table tbody tr:hover {
+    transform: translateX(3px);
+    box-shadow: inset 3px 0 0 var(--green-main);
+}
+
+.data-table tbody tr:nth-child(1) {
+    animation-delay: .46s;
+}
+
+.data-table tbody tr:nth-child(2) {
+    animation-delay: .51s;
+}
+
+.data-table tbody tr:nth-child(3) {
+    animation-delay: .56s;
+}
+
+.data-table tbody tr:nth-child(4) {
+    animation-delay: .61s;
+}
+
+.data-table tbody tr:nth-child(5) {
+    animation-delay: .66s;
+}
+
+.data-table tbody tr:nth-child(n+6) {
+    animation-delay: .71s;
+}
+
+.data-table tbody tr {
+    animation: adminFadeUp .42s ease both;
+}
+
+.filter-dropdown.show,
+.export-dropdown.show,
+.dropdown-menu,
+.modal.show .modal-content,
+.modal.show .modal-content--sm,
+.modal.show .modal-content--lg,
+.modal.show .modal-content--report {
+    animation: adminScaleIn .2s ease both;
+}
+
+.modal.show {
+    animation: adminFadeIn .2s ease both;
+}
+
+.badge,
+.trend,
+.step-circle {
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.badge:hover,
+.trend:hover,
+.step-circle:hover {
+    transform: translateY(-1px);
+}
+
+.notification-btn,
+.user-profile,
+.logout-btn,
+.nav-link {
+    transition:
+        transform var(--transition-fast),
+        background var(--transition-fast),
+        color var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.notification-btn:hover,
+.user-profile:hover {
+    transform: translateY(-2px);
+}
+
+@keyframes adminFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes adminFadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes adminFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes adminSlideRight {
+    from {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes adminScaleIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+}

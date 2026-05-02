@@ -154,10 +154,10 @@ nav {
 .stat-num {
     font-family: 'Playfair Display', serif;
     font-size: 2.2rem; font-weight: 700;
-    color: var(--white);
+    color: #d4af37;
     line-height: 1;
 }
-.stat-num span { color: var(--orange-light); }
+.stat-num span { color: #d4af37; }
 .stat-label {
     font-size: .75rem; color: rgba(255,255,255,.55);
     text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px;

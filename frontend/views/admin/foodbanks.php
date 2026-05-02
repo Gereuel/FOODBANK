@@ -218,6 +218,7 @@ function formatTime($time) {
         </div>
 
         <!-- Table -->
+        <div class="table-scroll">
         <table class="data-table">
             <thead>
                 <tr>
@@ -284,6 +285,7 @@ function formatTime($time) {
                 <?php endif; ?>
             </tbody>
         </table>
+        </div>
 
         <!-- Pagination -->
         <div class="table-footer">

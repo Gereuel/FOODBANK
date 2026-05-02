@@ -64,16 +64,16 @@
         <footer class="strip">
             <div class="strip-left">FoodBank App © 2026 — Making Every Meal Matter</div>
             <div class="strip-right">
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
-            <a href="#">Donate</a>
+            <a href="frontend/views/public/privacy-security.html">Privacy & Security</a>
+            <a href="frontend/views/public/terms-agreement.html">Terms & Agreement</a>
+            <a href="frontend/views/public/how-to-donate.html">How to Donate</a>
             </div>
         </footer>
     </section>
 
     <script>
     document.addEventListener("DOMContentLoaded", () => {
-        fetch('frontend/assets/json/stats.json')
+        fetch('backend/api/get_landing_stats.php')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Network response was not ok: ${response.statusText}`);

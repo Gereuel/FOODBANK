@@ -12,7 +12,7 @@
     <ul>
         <!-- Standard Active Link -->
         <li class="active">
-            <a href="/foodbank/frontend/views/admin/admin_index.php">
+            <a href="#" data-target="/foodbank/frontend/views/admin/dashboard_home.php">
                 <i class="fas fa-home"></i>
                 <span class="menu-text">Dashboard</span>
             </a>
@@ -43,7 +43,7 @@
             <!-- The 'submenu' class ensures this is hidden by default via CSS -->
             <ul class="submenu">
                 <li><a href="#" class="nav-link dropdown-item" data-target="/foodbank/frontend/views/admin/foodbanks.php">Overview</a></li>
-                <li><a href="#" class="nav-link dropdown-item" data-target="#">Managers Info</a></li>
+                <li><a href="#" class="nav-link dropdown-item" data-target="/foodbank/frontend/views/admin/foodbank-managers.php">Managers Info</a></li>
             </ul>
         </li>
         

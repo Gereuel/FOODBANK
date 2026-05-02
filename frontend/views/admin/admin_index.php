@@ -66,6 +66,7 @@ try {
     <!-- Category CSS -->
     <link rel="stylesheet" href="../../assets/css/pages/admin/adminDashboard.css">
     <link rel="stylesheet" href="../../assets/css/pages/admin/user_management.css">
+    <link rel="stylesheet" href="../../assets/css/pages/admin/admin-animations.css">
     <link rel="icon" href="../../../favicon.ico">
 </head>
 <body>
@@ -93,6 +94,12 @@ try {
         console.log('Email Value:', "<?php echo htmlspecialchars($adminEmail); ?>");
     </script>
 
+    <!-- Donation Modals (root-level so overlay works above sidebar/topbar) -->
+    <?php require_once 'modals/donation-report-modal.php'; ?>
+    <?php require_once 'modals/add-donation-modal.php'; ?>
+    <?php require_once 'modals/edit-donation-modal.php'; ?>
+    <?php require_once 'modals/delete-donation-modal.php'; ?>
+
     <script src="../../assets/js/app.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/donation-modals.js?v=<?php echo time(); ?>"></script>
 
@@ -107,6 +114,6 @@ try {
     <script src="../../assets/js/modals/edit-donation-modal.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/delete-donation-modal.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/foodbank-modals.js?v=<?php echo time(); ?>"></script>
-    
+    <script src="../../assets/js/modals/manager-modals.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

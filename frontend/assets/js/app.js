@@ -3,6 +3,14 @@
 // ==========================================
 
 // Function to dynamically load HTML components
+function moveModalsToBody() {
+    document.querySelectorAll('.modal').forEach(modal => {
+        if (modal.parentElement && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+    });
+}
+
 function loadComponent(containerId, filePath, callback = null) {
     fetch(filePath)
         .then(response => {
@@ -11,6 +19,7 @@ function loadComponent(containerId, filePath, callback = null) {
         })
         .then(data => {
             document.getElementById(containerId).innerHTML = data;
+            moveModalsToBody();
             if (callback) callback();
             // Initialize page-specific scripts after content loads
             initPageScripts();
@@ -28,6 +37,7 @@ function initPageScripts() {
     if (typeof initSecurityModal === 'function') initSecurityModal();
     if (typeof initDonationModals === 'function') initDonationModals();
     if (typeof initFoodBankModals === 'function') initFoodBankModals();
+    if (typeof initManagerModals === 'function') initManagerModals();
 }
 
 // Function to update the Topbar Profile UI
@@ -113,19 +123,22 @@ document.addEventListener('click', function(e) {
         loadComponent('main-display', targetFile);
 
         // Clear all active states
-        document.querySelectorAll('.nav-item, .dropdown-item').forEach(item => {
+        document.querySelectorAll('.sidebar-nav li.active, .sidebar-nav a.active').forEach(item => {
             item.classList.remove('active');
         });
 
         // Set active on the closest dropdown-item, or nav-item if top-level
-        const parentDropdownItem = navLink.closest('.dropdown-item');
+        const parentDropdownItem = navLink.closest('.submenu li');
         if (parentDropdownItem) {
             parentDropdownItem.classList.add('active');
+            navLink.classList.add('active');
             // Also keep the parent nav-item open/highlighted
-            const parentNavItem = navLink.closest('.nav-item.has-dropdown');
-            if (parentNavItem) parentNavItem.classList.add('active');
+            const parentNavItem = navLink.closest('.has-dropdown');
+            if (parentNavItem) {
+                parentNavItem.classList.add('active', 'open');
+            }
         } else {
-            const parentNavItem = navLink.closest('.nav-item');
+            const parentNavItem = navLink.closest('.sidebar-nav > ul > li');
             if (parentNavItem) parentNavItem.classList.add('active');
         }
     }

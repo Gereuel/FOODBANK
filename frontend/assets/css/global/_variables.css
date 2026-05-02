@@ -98,7 +98,7 @@
     /* ─ Z-Index Scale ─ */
     --z-base: 1;
     --z-dropdown: 100;
-    --z-sticky: 50;
-    --z-modal: 1000;
-    --z-tooltip: 1001;
+    --z-sticky: 1000;
+    --z-modal: 10000;
+    --z-tooltip: 9999;
 }
