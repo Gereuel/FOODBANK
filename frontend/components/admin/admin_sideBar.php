@@ -10,52 +10,52 @@
 <!-- Sidebar Navigation -->
 <nav class="sidebar-nav">
     <ul>
-        <!-- Standard Active Link -->
+        <!-- Dashboard -->
         <li class="active">
-            <a href="#" data-target="/foodbank/frontend/views/admin/dashboard_home.php">
+            <a href="#" class="nav-link" data-target="/foodbank/frontend/views/admin/dashboard_home.php">
                 <i class="fas fa-home"></i>
                 <span class="menu-text">Dashboard</span>
             </a>
         </li>
 
-        <!-- Dropdown Menu Item -->
+        <!-- Users (dropdown) -->
         <li class="has-dropdown">
             <a href="#" class="dropdown-toggle">
                 <i class="fas fa-users"></i>
                 <span class="menu-text">Users</span>
                 <i class="fas fa-chevron-down icon-chevron-down"></i>
             </a>
-            <!-- The 'submenu' class ensures this is hidden by default via CSS -->
             <ul class="submenu">
                 <li><a href="#" class="nav-link dropdown-item" data-target="/foodbank/frontend/views/admin/user_management.php">Overview</a></li>
-                <li><a href="#" class="nav-link dropdown-item" data-target="/foodbank/frontend/views/admin/password-security.php">Password & Security</a></li>
+                <li><a href="#" class="nav-link dropdown-item" data-target="/foodbank/frontend/views/admin/password-security.php">Password &amp; Security</a></li>
                 <li><a href="#" class="nav-link dropdown-item" data-target="/foodbank/frontend/views/admin/donations.php">Donations</a></li>
             </ul>
         </li>
 
-        <!-- Dropdown Menu Item -->
+        <!-- Food Bank (dropdown) -->
         <li class="has-dropdown">
             <a href="#" class="dropdown-toggle">
                 <i class="fas fa-hand-holding-heart"></i>
                 <span class="menu-text">Food Bank</span>
                 <i class="fas fa-chevron-down icon-chevron-down"></i>
             </a>
-            <!-- The 'submenu' class ensures this is hidden by default via CSS -->
             <ul class="submenu">
                 <li><a href="#" class="nav-link dropdown-item" data-target="/foodbank/frontend/views/admin/foodbanks.php">Overview</a></li>
                 <li><a href="#" class="nav-link dropdown-item" data-target="/foodbank/frontend/views/admin/foodbank-managers.php">Managers Info</a></li>
             </ul>
         </li>
-        
-        <!-- Standard Link -->
+
+        <!-- Reports -->
         <li>
-            <a href="#">
+            <a href="#" class="nav-link" data-target="/foodbank/frontend/views/admin/reports.php">
                 <i class="fas fa-chart-bar"></i>
                 <span class="menu-text">Reports</span>
             </a>
         </li>
+
+        <!-- Settings (no view yet) -->
         <li>
-            <a href="#">
+            <a href="#" class="nav-link" data-target="/frontend/views/admin/settings.php">
                 <i class="fas fa-gear"></i>
                 <span class="menu-text">Settings</span>
             </a>

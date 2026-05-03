@@ -609,15 +609,42 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-overlay);
     overflow: hidden;
+    /* REMOVE nothing here — but ensure no width conflict below */
 }
+
+/*
+.modal-content {
+    position: relative;
+    z-index: 1000000;
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 680px);
+    max-width: 680px;
+    max-height: calc(100vh - 40px);
+    background-color: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-overlay);
+    overflow: hidden;
+} */
 
 .modal-body {
     padding: var(--spacing-2xl);
     overflow-y: auto;
     flex: 1 1 auto;
     min-height: 0;
-    max-height: calc(100vh - 230px);
+    max-height: calc(100vh - 180px); /* was 230px — gives more room */
+    width: 100%;                      /* ADD: ensure body fills modal width */
+    box-sizing: border-box;           /* ADD: padding doesn't shrink width */
 }
+
+/*
+.modal-body {
+    padding: var(--spacing-2xl);
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: calc(100vh - 230px);
+} */
 
 .modal-header {
     background: var(--green-mid);
@@ -659,10 +686,6 @@
 
 .modal-close:hover {
     background: rgba(255, 255, 255, 0.25);
-}
-
-.modal-body {
-    padding: var(--spacing-2xl);
 }
 
 .modal-body form {
@@ -1091,6 +1114,7 @@
 
 .modal-content--report {
     max-width: 700px;
+    overflow: visible;
 }
 
 .report-header {
@@ -1244,7 +1268,6 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: var(--spacing-xl);
-    overflow: hidden;
 }
 
 .report-section-bg {
@@ -1420,8 +1443,7 @@
     }
 
     .form-row,
-    .report-status-bar,
-    .security-toggle-row {
+    .report-status-bar {
         flex-direction: column;
         align-items: stretch;
     }

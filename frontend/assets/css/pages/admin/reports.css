@@ -1,0 +1,257 @@
+/* ══════════════════════════════════════════════════════════════
+   REPORTS PAGE CSS
+   Category: Admin
+   Depends on: user_management.css (shares .stat-row, .stat-card,
+   .table-card, .data-table, .badge-*, .table-toolbar, .table-scroll)
+   ══════════════════════════════════════════════════════════════ */
+
+
+/* ─────────────────────────────────────────────────────────────
+   PAGE HEADER CONTROLS
+   (range filter + export buttons right-aligned inside .page-header)
+   ───────────────────────────────────────────────────────────── */
+
+.page-header h2 {
+    font-family: var(--font-family-serif);
+}
+
+.stat-row {
+    margin-bottom: var(--spacing-4xl);
+}
+
+.badge-active {
+    font-weight: var(--font-weight-medium);
+}
+
+.rpt-header-controls {
+    grid-column: 2;
+    grid-row: 1 / 3;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+
+    gap: var(--spacing-md);
+}
+
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.filter-bar-label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.range-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background: var(--bg-secondary);
+    color: var(--text-sub);
+    font-family: var(--font-family-main);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.range-btn:hover {
+    border-color: var(--green-main);
+    color: var(--green-main);
+}
+
+.range-btn.active {
+    background: var(--green-dark);
+    border-color: var(--green-dark);
+    color: var(--white);
+}
+
+.rpt-export-row {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+/* Reuse .btn-add shape; tint via modifier classes */
+.rpt-btn-csv {
+    background: var(--green-main);
+}
+
+.rpt-btn-csv:hover {
+    background: var(--green-dark);
+}
+
+.rpt-btn-pdf {
+    background: #f57c00;
+}
+
+.rpt-btn-pdf:hover {
+    opacity: 0.9;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION LABELS
+   (the small row above each stat-row: title + period badge)
+   ───────────────────────────────────────────────────────────── */
+
+.rpt-section-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.rpt-section-title {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    color: var(--gray-500);
+}
+
+.rpt-section-divider {
+    margin: var(--spacing-4xl) 0;
+    border: none;
+    border-top: 1px solid var(--border-color);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   SECOND STAT ROW (user activity — sits tighter under the first)
+   ───────────────────────────────────────────────────────────── */
+
+.rpt-stat-row-second {
+    margin-top: calc(var(--spacing-lg) * -1);
+}
+
+.rpt-value-red {
+    color: var(--red-main) !important;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   CHART GRID  (2-col; collapses to 1-col below 900px)
+   ───────────────────────────────────────────────────────────── */
+
+.rpt-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-3xl);
+}
+
+/* Chart cards reuse .table-card for the white box + border */
+.rpt-chart-card {
+    padding: var(--spacing-xl) var(--spacing-2xl);
+}
+
+.rpt-chart-card-header {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--text-sub);
+    margin-bottom: var(--spacing-lg);
+}
+
+.rpt-chart-wrap {
+    position: relative;
+    height: 220px;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   TABLE CARD EXTRAS
+   ───────────────────────────────────────────────────────────── */
+
+/* Spacing below table cards that precede a divider */
+.rpt-table-spacing {
+    margin-bottom: var(--spacing-3xl);
+}
+
+/* Toolbar row inside a reports table (no search input — simpler) */
+.rpt-table-toolbar-inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+
+    padding: var(--spacing-lg) var(--spacing-2xl);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.rpt-table-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-main);
+}
+
+/* Rank number column */
+.rpt-rank {
+    font-weight: var(--font-weight-bold);
+    color: var(--green-main);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   PROGRESS BAR  (food bank items received column)
+   ───────────────────────────────────────────────────────────── */
+
+.rpt-progress-wrap {
+    min-width: 160px;
+}
+
+.rpt-progress-bar-bg {
+    height: 6px;
+    background: var(--border-color);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.rpt-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-mid), var(--green-main));
+    border-radius: var(--radius-full);
+    transition: width 0.6s ease;
+}
+
+.rpt-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-xs);
+    color: var(--text-sub);
+    margin-top: var(--spacing-xs);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   RESPONSIVE
+   ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+    .rpt-chart-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+    .rpt-header-controls { align-items: flex-start; }
+    .filter-bar { flex-wrap: wrap; }
+}
+
+@media print {
+    .rpt-header-controls,
+    .filter-bar,
+    .range-btn { display: none !important; }
+
+    .rpt-chart-card,
+    .table-card { box-shadow: none !important; break-inside: avoid; }
+
+    .rpt-chart-wrap { height: 180px !important; }
+}

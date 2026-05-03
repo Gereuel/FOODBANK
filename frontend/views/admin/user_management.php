@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../../../backend/config/database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
 
 // --- CRITICAL SECURITY CHECK ---
 // Only allow access if the user is logged in AND is an Admin ('AA')
@@ -178,7 +178,7 @@ try {
                                 <input type="checkbox" name="status" value="active" checked> Active
                             </label>
                             <label class="filter-option">
-                                <input type="checkbox" name="status" value="inactive"> Inactive
+                                <input type="checkbox" name="status" value="disabled"> Disabled
                             </label>
                         </div>
                     </div>
@@ -265,7 +265,7 @@ try {
                         <td><?= htmlspecialchars(substr($location, 0, 40) . (strlen($location) > 40 ? '...' : '')) ?></td>
                         <td>
                             <span class="badge <?= $user['Status'] === 'Active' ? 'badge-active' : 'badge-inactive' ?>">
-                                <?= htmlspecialchars($user['Status']) ?>
+                                <?= $user['Status'] === 'Disabled' ? 'Disabled' : htmlspecialchars($user['Status']) ?>
                             </span>
                         </td>
                     <td><?= htmlspecialchars($user['Custom_App_ID']) ?></td>
@@ -354,4 +354,3 @@ try {
 <script src="/foodbank/frontend/assets/js/modals/delete-user-modal.js"></script>
 <script src="/foodbank/frontend/assets/js/modals/security-user-modal.js"></script>
 <script src="/foodbank/frontend/assets/js/modals/toolbar.js"></script>
-<script src="/foodbank/frontend/asstes/js/modals/magers-modals.php"></script>

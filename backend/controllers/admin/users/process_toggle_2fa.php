@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../../../config/database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {

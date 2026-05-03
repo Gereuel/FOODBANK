@@ -32,7 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($account && password_verify($password, $account['Password_Hash'])) {
 
             // Check if account is active
-            if ($account['Status'] === 'Inactive') {
+            // Handles both old 'Inactive' records and new 'Disabled' records
+            if ($account['Status'] === 'Disabled' || $account['Status'] === 'Inactive') {
                 header("Location: ../../../login.php?error=account_disabled");
                 exit();
             }

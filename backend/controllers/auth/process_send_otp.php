@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../../config/database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
 
 if (!isset($_SESSION['pending_account_id'])) {
     header("Location: ../../../login.php"); exit();

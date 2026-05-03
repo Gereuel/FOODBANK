@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/../config/database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
 
 function formatStatValue(int $value): array
 {

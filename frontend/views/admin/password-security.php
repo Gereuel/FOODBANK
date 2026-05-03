@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../../../backend/config/database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
 
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     die("Unauthorized Access: Only administrators can access this page.");
@@ -109,6 +109,7 @@ try {
         </div>
 
         <!-- Table -->
+        <div class="table-scroll">
         <table class="data-table">
             <thead>
                 <tr>
@@ -144,6 +145,7 @@ try {
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
 
         <!-- Pagination -->
         <div class="table-footer">

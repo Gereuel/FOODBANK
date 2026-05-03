@@ -44,9 +44,12 @@
                         <div class="security-section-desc">Generate a reset link and send it to the user's email.</div>
                     </div>
                 </div>
-                <button class="security-btn security-btn--primary" id="send-reset-btn">
-                    Send Password Reset Link
-                </button>
+                <div class="security-toggle-row">
+                    <span class="security-toggle-label">Send a reset link to the user's email.</span>
+                    <button class="security-btn security-btn--primary" id="send-reset-btn">
+                        Send Password Reset Link
+                    </button>
+                </div>
                 <div class="reset-link-box" id="reset-link-box" style="display:none;">
                     <label>Reset Link (copy and share manually):</label>
                     <div class="reset-link-row">

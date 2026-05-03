@@ -3,7 +3,7 @@
 session_start();
 
 // Include database configuration
-require_once '../../../backend/config/database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['Account_ID'])) {
@@ -50,6 +50,36 @@ try {
     die("Error fetching admin credentials: " . $e->getMessage());
 }
 ?>
+
+<?php
+// Pre-fetch donor and foodbank lists for donation modal dropdowns
+try {
+    $stmt_donors = $pdo->query("
+        SELECT a.Account_ID, a.Custom_App_ID, u.First_Name, u.Last_Name
+        FROM ACCOUNTS a JOIN USERS u ON a.User_ID = u.User_ID
+        WHERE a.Account_Type = 'PA'
+        ORDER BY u.First_Name
+    ");
+    $donors = $stmt_donors->fetchAll();
+
+    $stmt_banks = $pdo->query("
+        SELECT fb.FoodBank_ID, fb.Organization_Name
+        FROM FOOD_BANKS fb
+        WHERE fb.Verification_Status = 'Approved'
+        ORDER BY fb.Organization_Name
+    ");
+    $foodbanks = $stmt_banks->fetchAll();
+} catch (PDOException $e) {
+    $donors    = [];
+    $foodbanks = [];
+}
+?>
+
+<?php require_once 'modals/donation-report-modal.php'; ?>
+<?php require_once 'modals/add-donation-modal.php'; ?>
+<?php require_once 'modals/edit-donation-modal.php'; ?>
+<?php require_once 'modals/delete-donation-modal.php'; ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -94,15 +124,9 @@ try {
         console.log('Email Value:', "<?php echo htmlspecialchars($adminEmail); ?>");
     </script>
 
-    <!-- Donation Modals (root-level so overlay works above sidebar/topbar) -->
-    <?php require_once 'modals/donation-report-modal.php'; ?>
-    <?php require_once 'modals/add-donation-modal.php'; ?>
-    <?php require_once 'modals/edit-donation-modal.php'; ?>
-    <?php require_once 'modals/delete-donation-modal.php'; ?>
-
     <script src="../../assets/js/app.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/donation-modals.js?v=<?php echo time(); ?>"></script>
-
+    
     <!-- Modal Scripts -->
     <script src="../../assets/js/modals/add-user-modal.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/view-user-modal.js?v=<?php echo time(); ?>"></script>
@@ -110,9 +134,6 @@ try {
     <script src="../../assets/js/modals/edit-user-modal.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/toolbar.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/security-user-modal.js?v=<?php echo time(); ?>"></script>
-    <script src="../../assets/js/modals/add-donation-modal.js?v=<?php echo time(); ?>"></script>
-    <script src="../../assets/js/modals/edit-donation-modal.js?v=<?php echo time(); ?>"></script>
-    <script src="../../assets/js/modals/delete-donation-modal.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/foodbank-modals.js?v=<?php echo time(); ?>"></script>
     <script src="../../assets/js/modals/manager-modals.js?v=<?php echo time(); ?>"></script>
 </body>

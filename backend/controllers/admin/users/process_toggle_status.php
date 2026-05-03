@@ -14,11 +14,8 @@ if (!$account_id || !in_array($status, ['Active', 'Inactive'])) {
     echo json_encode(['success' => false, 'message' => 'Invalid data.']); exit();
 }
 
-// Prevent admin from disabling their own account
-$stmt_check = $pdo->prepare("SELECT User_ID FROM ACCOUNTS WHERE Account_ID = ?");
-$stmt_check->execute([$account_id]);
-$target = $stmt_check->fetch();
-if ($target && $target['User_ID'] === intval($_SESSION['User_ID'])) {
+// FIX: Compare Account_IDs directly — $_SESSION['User_ID'] may not be set
+if (intval($_SESSION['Account_ID']) === $account_id) {
     echo json_encode(['success' => false, 'message' => 'You cannot disable your own account.']); exit();
 }
 
