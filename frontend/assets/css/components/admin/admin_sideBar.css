@@ -42,546 +42,165 @@
    SIDEBAR HEADER / LOGO
    ============================================ */
 
-/* ============================================
-   SIDEBAR HEADER / LOGO
-   ============================================ */
+/* ─────────────────────────────────────────────────────────────
+   SIDEBAR HEADER
+   ───────────────────────────────────────────────────────────── */
 
 .sidebar-header {
+    padding: var(--spacing-2xl) var(--spacing-lg);
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 24px 18px;
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
-    position: relative;
-}
-
-.sidebar-header::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
-}
-
-.sidebar-header .logo-container {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1));
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    transition: all var(--transition-speed) ease;
-}
-
-.sidebar-header .logo-container:hover {
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.15));
-    border-color: rgba(255, 215, 0, 0.5);
-    transform: scale(1.05);
+    gap: var(--spacing-md);
 }
 
 .sidebar-header .logo-img {
-    width: 32px;
-    height: 32px;
+    width: 60px;
+    height: auto;
     object-fit: contain;
+    flex-shrink: 0;
 }
 
-.sidebar-header .logo-text {
-    flex: 1;
-    min-width: 0;
+.logo-text h1 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-xs);
+    color: var(--white);
 }
 
-.sidebar-header .logo-text h1 {
-    margin: 0;
-    font-size: 19px;
-    font-weight: 800;
-    color: var(--text-primary);
-    letter-spacing: -0.3px;
-    line-height: 1.2;
-}
-
-.sidebar-header .logo-text .tagline {
-    margin: 3px 0 0 0;
-    font-size: 11px;
-    color: var(--accent-color);
-    font-weight: 700;
+.logo-text span {
+    font-size: var(--font-size-xs);
+    letter-spacing: 1px;
+    opacity: 0.8;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    opacity: 0.9;
 }
 
-
-/* ============================================
+/* ─────────────────────────────────────────────────────────────
    SIDEBAR NAVIGATION
-   ============================================ */
+   ───────────────────────────────────────────────────────────── */
 
 .sidebar-nav {
     flex: 1;
-    padding: 16px 0;
     overflow-y: auto;
-    overflow-x: hidden;
+    padding: 0 var(--spacing-md);
+    --active-bg: rgba(255, 255, 255, 0.1);
 }
 
-.nav-menu {
+.sidebar-nav ul {
     list-style: none;
-    margin: 0;
-    padding: 0;
 }
 
-.nav-item {
-    margin: 0;
-    position: relative;
+.sidebar-nav li {
+    margin-bottom: var(--spacing-sm);
 }
 
-/* ============================================
-   NAV LINKS - BASE STYLES
-   ============================================ */
-
-.nav-link {
+.sidebar-nav a {
     display: flex;
     align-items: center;
-    padding: 12px 16px;
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all var(--transition-speed) ease;
-    cursor: pointer;
-    gap: 12px;
-    position: relative;
-    border-left: 3px solid transparent;
-    margin: 0 8px;
-    border-radius: 6px;
-    white-space: nowrap;
+    padding: var(--spacing-md) var(--spacing-lg);
+    color: var(--text-light);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
 }
 
-/* ============================================
-   NAV LINKS - HOVER STATE
-   ============================================ */
-
-.nav-item > .nav-link:hover {
-    background-color: var(--hover-bg);
-    color: var(--text-primary);
-    padding-left: 20px;
-}
-
-.nav-item > .nav-link:hover i {
-    transform: scale(1.15);
-    opacity: 1;
-}
-
-/* ============================================
-   NAV LINKS - ACTIVE STATE
-   ============================================ */
-
-.nav-item.active > .nav-link {
-    background-color: var(--active-bg);
-    color: var(--accent-color);
-    font-weight: 600;
-    border-left: 3px solid var(--accent-color);
-    padding-left: 16px;
-}
-
-.nav-item.active > .nav-link i {
-    opacity: 1;
-    color: var(--accent-color);
-}
-
-/* ============================================
-   DROPDOWN / SUBMENU STYLING
-   ============================================ */
-
-.nav-item.has-dropdown > .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.nav-link .dropdown-icon {
-    margin-left: auto;
-    font-size: 12px;
-    font-weight: 700;
-    transition: transform var(--transition-speed) ease;
-    flex-shrink: 0;
-}
-
-.nav-item.has-dropdown.open > .nav-link .dropdown-icon {
-    transform: rotate(90deg);
-}
-
-.nav-item.has-dropdown.open > .nav-link {
-    color: var(--text-primary);
-    background-color: rgba(255, 255, 255, 0.08);
-}
-
-/* DROPDOWN MENU CONTAINER */
-
-.dropdown-menu {
-    display: none;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    background-color: var(--sidebar-dark);
-}
-
-.nav-item.has-dropdown.open > .dropdown-menu {
-    display: block;
-    animation: slideDown 0.25s ease-out;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* DROPDOWN MENU ITEMS */
-
-.dropdown-item {
-    margin: 0;
-    animation: slideInItem 0.3s ease-out forwards;
-}
-
-.nav-item.has-dropdown.open .dropdown-item:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.nav-item.has-dropdown.open .dropdown-item:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-.nav-item.has-dropdown.open .dropdown-item:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.dropdown-item .nav-link {
-    padding: 11px 16px 11px 50px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    position: relative;
-    border-left: 2px solid transparent;
-    margin: 4px 8px;
-    border-radius: 4px;
-    transition: all var(--transition-speed) ease;
-}
-
-/* DROPDOWN ITEM ICON */
-
-.dropdown-item .nav-link i {
-    position: absolute;
-    left: 24px;
-    width: 16px;
-    text-align: center;
-    opacity: 0.7;
-    transition: all var(--transition-speed) ease;
-}
-
-/* DROPDOWN ITEM HOVER STATE */
-
-.dropdown-item .nav-link:hover {
+.sidebar-nav a:hover,
+.sidebar-nav > ul > li.active > a {
     background-color: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
-    padding-left: 54px;
-    border-left: 2px solid transparent;
+    color: var(--white);
 }
 
-.dropdown-item .nav-link:hover i {
-    opacity: 1;
-    transform: translateX(4px);
-}
-
-/* DROPDOWN ITEM ACTIVE STATE */
-
-.dropdown-item.active .nav-link {
-    background-color: var(--active-bg);
-    color: var(--accent-color);
-    font-weight: 600;
-    border-left: 2px solid var(--accent-color);
-    padding-left: 46px;
-}
-
-.dropdown-item.active .nav-link i {
-    color: var(--accent-color);
-    opacity: 1;
-    transform: translateX(4px);
-}
-
-/* ============================================
-   ICONS
-   ============================================ */
-
-.sidebar-nav i {
-    font-size: 17px;
+.sidebar-nav a i {
+    display: inline-block;
     width: 20px;
     text-align: center;
-    opacity: 0.85;
-    transition: all var(--transition-speed) ease;
+    font-size: 16px;
     flex-shrink: 0;
 }
 
-.sidebar-nav a:hover i {
-    opacity: 1;
-    transform: scale(1.15);
+.sidebar-nav .menu-text {
+    flex: 1;
+    padding-left: var(--spacing-md);
 }
 
-.nav-item.active > .nav-link i {
-    color: var(--accent-color);
-    opacity: 1;
+.sidebar-nav .icon-chevron-down {
+    width: auto !important;
+    font-size: 10px;
+    transition: transform var(--transition-slow);
 }
 
-/* ============================================
-   BADGE NOTIFICATION
-   ============================================ */
-
-.badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    background-color: #ff4757;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 700;
-    border-radius: 50%;
-    margin-left: auto;
-    animation: pulse 2s infinite;
+.sidebar-nav .has-dropdown.open .icon-chevron-down {
+    transform: rotate(180deg);
 }
 
-@keyframes pulse {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
-    }
-    50% {
-        box-shadow: 0 0 0 6px rgba(255, 71, 87, 0);
-    }
+/* Submenu */
+.sidebar-nav .submenu {
+    list-style: none;
+    padding-left: var(--spacing-2xl);
+    margin-top: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    display: none;
 }
 
-/* ============================================
+.sidebar-nav .has-dropdown.open .submenu {
+    display: block;
+}
+
+.sidebar-nav .submenu li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.sidebar-nav .submenu a {
+    padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm) var(--spacing-3xl);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    color: var(--text-lighter);
+    transition: all var(--transition-fast);
+}
+
+.sidebar-nav .submenu a:hover {
+    color: var(--white);
+    padding-left: calc(var(--spacing-3xl) + 4px);
+}
+
+.sidebar-nav .submenu a.dropdown-item.active {
+    background-color: var(--active-bg);
+    color: var(--white);
+}
+
+/* ─────────────────────────────────────────────────────────────
    SIDEBAR FOOTER
-   ============================================ */
+   ───────────────────────────────────────────────────────────── */
 
 .sidebar-footer {
-    padding: 16px 12px;
-    border-top: 1px solid var(--border-color);
-    flex-shrink: 0;
-    margin-top: auto;
-    position: relative;
-}
-
-.sidebar-footer::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+    padding: var(--spacing-lg);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logout-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 12px 14px;
-    background: linear-gradient(135deg, rgba(255, 59, 48, 0.25), rgba(255, 59, 48, 0.15));
-    color: #ffb3b3;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 13px;
-    transition: all var(--transition-speed) ease;
-    border: 1.5px solid rgba(255, 59, 48, 0.35);
-    cursor: pointer;
-    width: 100%;
+    padding: var(--spacing-md) var(--spacing-lg);
+    color: var(--text-light);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
 }
 
 .logout-btn:hover {
-    background: linear-gradient(135deg, rgba(255, 59, 48, 0.35), rgba(255, 59, 48, 0.25));
-    color: #ffffff;
-    border-color: rgba(255, 59, 48, 0.55);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #ff8787;
 }
 
 .logout-btn i {
+    display: inline-block;
+    width: 20px;
+    text-align: center;
     font-size: 16px;
+    margin-right: var(--spacing-md);
 }
 
-.logout-text {
-    display: inline;
+@media print {
+    .sidebar { display: none !important; }
 }
-
-/* ============================================
-   SCROLLBAR STYLING
-   ============================================ */
-
-.sidebar::-webkit-scrollbar {
-    width: 6px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 3px;
-    transition: background var(--transition-speed) ease;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.4);
-}
-
-/* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
-
-@media (max-width: 1024px) {
-    .sidebar {
-        width: 240px;
-    }
-
-    .sidebar-header {
-        padding: 20px 16px;
-    }
-
-    .nav-link {
-        padding: 11px 16px;
-        font-size: 13px;
-    }
-
-    .dropdown-item .nav-link {
-        padding: 9px 16px 9px 48px;
-        font-size: 12px;
-    }
-}
-
-@media (max-width: 768px) {
-    .sidebar {
-        width: 70px;
-        transition: width 0.3s ease;
-    }
-
-    .sidebar.expanded {
-        width: 260px;
-    }
-
-    .sidebar-header {
-        padding: 16px;
-        justify-content: center;
-    }
-
-    .sidebar-header .logo-container {
-        width: 44px;
-        height: 44px;
-    }
-
-    .sidebar-header .logo-img {
-        width: 26px;
-        height: 26px;
-    }
-
-    .sidebar-header .logo-text {
-        display: none;
-    }
-
-    .sidebar-header .logo-text.show {
-        display: block;
-    }
-
-    .nav-link {
-        padding: 12px 18px;
-        justify-content: center;
-    }
-
-    .dropdown-menu {
-        display: none;
-    }
-
-    .sidebar.expanded .dropdown-menu {
-        display: block;
-    }
-
-    .nav-text {
-        display: none;
-    }
-
-    .sidebar.expanded .nav-text {
-        display: inline;
-    }
-
-    .badge {
-        display: none;
-    }
-
-    .sidebar-nav i {
-        font-size: 20px;
-    }
-
-    .sidebar-footer {
-        padding: 12px;
-    }
-
-    .logout-btn {
-        justify-content: center;
-        padding: 12px 12px;
-    }
-
-    .logout-text {
-        display: none;
-    }
-}
-
-/* ============================================
-   ANIMATIONS
-   ============================================ */
-
-@keyframes slideInItem {
-    from {
-        opacity: 0;
-        transform: translateX(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.nav-item {
-    animation: slideInItem 0.3s ease-out forwards;
-}
-
-.nav-item:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.nav-item:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-.nav-item:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.nav-item:nth-child(n+4) {
-    animation-delay: 0.2s;
-}
-
-.sidebar-nav > ul > li:nth-child(n+4) {
-    animation-delay: 0.2s;
-}
-

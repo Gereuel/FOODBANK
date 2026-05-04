@@ -1,3 +1,19 @@
+/* ─────────────────────────────────────────────────────────────
+   PRINT ARCHITECTURE
+   ───────────────────────────────────────────────────────────── */
+@media print {
+    /* Hide everything that makes it look like a "website" */
+    .sidebar,
+    .topbar,
+    .notification-btn,
+    .user-profile {
+        display: none !important;
+    }
+    .main-content {
+        margin-left: 0 !important; /* Remove sidebar spacing */
+    }
+}
+
 /* ══════════════════════════════════════════════════════════════
    ADMIN DASHBOARD CSS
    Category: Admin
@@ -225,6 +241,100 @@
     background: var(--gray-200);
 }
 
+.notification-btn {
+    position: relative;
+    background: #f1f3f4;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-fast);
+    z-index: 100; /* Ensure button is clickable above other elements */
+}
+
+.notification-btn:hover {
+    background: var(--gray-200);
+}
+
+.notification-btn i {
+    font-size: 18px;
+    color: var(--text-main);
+}
+
+.notification-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: var(--red-main);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* Allow clicks to pass through to the button */
+}
+
+.notification-dropdown {
+    display: none;
+    position: absolute;
+    top: 60px; /* Adjust based on topbar height */
+    right: var(--spacing-xl);
+    width: 360px;
+    max-width: calc(100vw - var(--spacing-xl) * 2);
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000; /* Ensure dropdown is above everything else */
+    overflow: hidden;
+}
+
+.notification-dropdown.show {
+    display: block;
+}
+
+.dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.dropdown-header h4 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-main);
+}
+
+.mark-all-read-btn {
+    background: none;
+    border: none;
+    color: var(--green-main);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.mark-all-read-btn:hover {
+    color: var(--green-dark);
+}
+
+.dropdown-body {
+    max-height: 300px; /* Scrollable area for notifications */
+    overflow-y: auto;
+    padding: var(--spacing-sm) 0;
+}
+
 .notification-btn i {
     font-size: 18px;
     color: var(--text-main);
@@ -260,6 +370,83 @@
     border-radius: 50%;
     object-fit: cover;
     background-color: var(--gray-200);
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.notification-item.unread {
+    background: var(--green-light-extra); /* Light background for unread */
+}
+
+.notification-item.unread:hover {
+    background: var(--green-light);
+}
+
+.notification-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--green-light);
+    color: var(--green-dark);
+    display: grid;
+    place-items: center;
+    font-size: var(--font-size-base);
+    margin-right: var(--spacing-md);
+}
+
+.notification-content {
+    flex-grow: 1;
+}
+
+.notification-message {
+    font-size: var(--font-size-base);
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.notification-time {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-top: var(--spacing-xs);
+}
+
+.no-notifications {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-muted);
+    font-size: var(--font-size-base);
+}
+
+.dropdown-footer {
+    padding: var(--spacing-sm) var(--spacing-xl);
+    border-top: 1px solid var(--border-light);
+    text-align: center;
+}
+
+.dropdown-footer a {
+    color: var(--green-main);
+    font-size: var(--font-size-sm);
+    text-decoration: none;
+}
+
+.dropdown-footer a:hover {
+    text-decoration: underline;
 }
 
 /* ─────────────────────────────────────────────────────────────

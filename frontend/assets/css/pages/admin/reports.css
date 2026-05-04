@@ -11,6 +11,16 @@
    (range filter + export buttons right-aligned inside .page-header)
    ───────────────────────────────────────────────────────────── */
 
+.rpt-print-only-header {
+    display: none;
+}
+
+.page-header {
+    position: relative;
+    z-index: 1050; /* Higher z-index to clear animated stat cards below */
+    overflow: visible;
+}
+
 .page-header h2 {
     font-family: var(--font-family-serif);
 }
@@ -84,18 +94,24 @@
 /* Reuse .btn-add shape; tint via modifier classes */
 .rpt-btn-csv {
     background: var(--green-main);
+    color: var(--white) !important;
+    border: none !important;
 }
 
 .rpt-btn-csv:hover {
     background: var(--green-dark);
+    color: var(--white) !important;
 }
 
 .rpt-btn-pdf {
     background: #f57c00;
+    color: var(--white) !important;
+    border: none !important;
 }
 
 .rpt-btn-pdf:hover {
-    opacity: 0.9;
+    background: #e65100 !important;
+    color: var(--white) !important;
 }
 
 
@@ -246,12 +262,67 @@
 }
 
 @media print {
+    /* 1. Hide UI Controls */
+    .page-header,
     .rpt-header-controls,
     .filter-bar,
-    .range-btn { display: none !important; }
+    .rpt-section-divider,
+    .rpt-export-row { 
+        display: none !important; 
+    }
+
+    /* 2. Show Professional Report Header */
+    .rpt-print-only-header {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 2px solid #2d6a4f;
+        padding-bottom: 10px;
+        margin-bottom: 40px;
+    }
+
+    .rpt-print-title {
+        margin: 0;
+        font-size: 26px;
+        color: #2d6a4f !important;
+        font-family: var(--font-family-serif);
+    }
+
+    .rpt-print-meta p {
+        margin: 2px 0;
+        font-size: 11px;
+        text-align: right;
+        color: #666;
+    }
+
+    /* 3. Document Layout */
+    body {
+        background: white !important;
+    }
+
+    .content-area {
+        padding: 0 !important;
+    }
+
+    .rpt-chart-grid {
+        grid-template-columns: 1fr 1fr !important; /* Keep charts side-by-side in PDF */
+        gap: 20px !important;
+    }
 
     .rpt-chart-card,
-    .table-card { box-shadow: none !important; break-inside: avoid; }
+    .table-card { 
+        box-shadow: none !important; 
+        border: 1px solid #eee !important;
+        break-inside: avoid; /* Prevent splitting a table across two pages */
+        margin-bottom: 30px !important;
+    }
 
-    .rpt-chart-wrap { height: 180px !important; }
+    .rpt-chart-wrap { height: 200px !important; }
+
+    /* 4. Table Formatting */
+    .data-table th {
+        background-color: #f8faf9 !important;
+        color: #333 !important;
+        -webkit-print-color-adjust: exact;
+    }
 }

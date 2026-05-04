@@ -1,11 +1,16 @@
-// ==========================================
+// =====================================================================================================================
 // 1. Core Functions
-// ==========================================
+// =====================================================================================================================
 
 // Function to dynamically load HTML components
 function moveModalsToBody() {
     document.querySelectorAll('.modal').forEach(modal => {
         if (modal.parentElement && modal.parentElement !== document.body) {
+            // Prevent duplication: if a modal with this ID already exists in body, remove it
+            const existing = document.querySelector(`body > #${modal.id}`);
+            if (existing && existing !== modal) {
+                existing.remove();
+            }
             document.body.appendChild(modal);
         }
     });
@@ -20,6 +25,16 @@ function loadComponent(containerId, filePath, callback = null) {
         .then(data => {
             document.getElementById(containerId).innerHTML = data;
             moveModalsToBody();
+            
+            // Manually execute scripts found in the injected HTML
+            const scripts = document.getElementById(containerId).querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+
             if (callback) callback();
             // Initialize page-specific scripts after content loads
             initPageScripts();
@@ -31,6 +46,13 @@ function loadComponent(containerId, filePath, callback = null) {
 function initPageScripts() {
     if (typeof initToolbar       === 'function') initToolbar();
     if (typeof initAddModal      === 'function') initAddModal();
+    
+    // Priority: Always try to initialize notifications if the elements are present
+    // even if it was previously "skipped" during a race condition.
+    if (typeof initNotifications === 'function') {
+        initNotifications();
+    }
+
     if (typeof initViewModal     === 'function') initViewModal();
     if (typeof initEditModal     === 'function') initEditModal();
     if (typeof initDeleteModal   === 'function') initDeleteModal();
@@ -38,6 +60,11 @@ function initPageScripts() {
     if (typeof initDonationModals === 'function') initDonationModals();
     if (typeof initFoodBankModals === 'function') initFoodBankModals();
     if (typeof initManagerModals === 'function') initManagerModals();
+    if (typeof initReports       === 'function') initReports();
+    if (typeof initDashboard     === 'function') initDashboard();
+    if (typeof initSettings      === 'function') initSettings();
+    if (typeof initNotificationsPage === 'function') initNotificationsPage();
+    initGlobalSearch();
 }
 
 // Function to update the Topbar Profile UI
@@ -61,10 +88,9 @@ function updateProfileUI(userData) {
     }
 }
 
-
-// ==========================================
+// =====================================================================================================================
 // 2. Initialize the Dashboard
-// ==========================================
+// =====================================================================================================================
 
 // FIXED: Added '/foodbank/' at the start of the paths
 loadComponent('sidebar-container', '/foodbank/frontend/components/admin/admin_sideBar.php');
@@ -86,9 +112,9 @@ loadComponent('topbar-container', '/foodbank/frontend/components/admin/admin_top
 loadComponent('main-display', '/foodbank/frontend/views/admin/dashboard_home.php');
 
 
-// ==========================================
+// =====================================================================================================================
 // 3. Global Event Listeners (Routing & UI)
-// ==========================================
+// =====================================================================================================================
 
 document.addEventListener('click', function(e) {
 
@@ -127,6 +153,20 @@ document.addEventListener('click', function(e) {
             item.classList.remove('active');
         });
 
+        // Global UI Cleanups on Navigation
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        if (notificationDropdown) notificationDropdown.classList.remove('show');
+        
+        document.querySelectorAll('.has-dropdown.open').forEach(openItem => {
+            openItem.classList.remove('open');
+        });
+
+        // Handle Brand Link -> Dashboard Highlight
+        if (targetFile.includes('dashboard_home.php')) {
+            const dashLi = document.querySelector('.sidebar-nav > ul > li:first-child');
+            if (dashLi) dashLi.classList.add('active');
+        }
+
         // Set active on the closest dropdown-item, or nav-item if top-level
         const parentDropdownItem = navLink.closest('.submenu li');
         if (parentDropdownItem) {
@@ -149,3 +189,138 @@ document.addEventListener('click', function(e) {
         e.preventDefault();
     }
 });
+
+// =====================================================================================================================
+// 4. Notification System
+// =====================================================================================================================
+
+let notificationPollingInterval, hasNotificationListeners = false;
+
+window.initNotifications = function() {
+    const notificationToggle = document.getElementById('notification-toggle');
+    const notificationDropdown = document.getElementById('notification-dropdown');
+    const notificationList = document.getElementById('notification-list');
+    const notificationBadge = document.getElementById('notification-badge');
+    const markAllReadBtn = document.getElementById('mark-all-read-btn');
+    const noNotificationsMessage = document.getElementById('no-notifications-message');
+
+    if (!notificationToggle || !notificationDropdown || !notificationList || !notificationBadge) {
+        console.warn("Notification elements not found. Skipping notification initialization.");
+        return;
+    }
+
+    // Prevent duplicate listeners when navigating between pages
+    if (hasNotificationListeners) {
+        fetchNotifications(); 
+        return;
+    }
+
+    // Toggle dropdown visibility
+    notificationToggle.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent document click from closing immediately
+        notificationDropdown.classList.toggle('show');
+        if (notificationDropdown.classList.contains('show')) {
+            fetchNotifications(); // Fetch latest when opening
+        }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!notificationDropdown.contains(e.target) && !notificationToggle.contains(e.target)) {
+            notificationDropdown.classList.remove('show');
+        }
+    });
+
+    hasNotificationListeners = true;
+
+    // Mark all as read button
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', async function() {
+            try {
+                const response = await fetch('/foodbank/backend/api/notifications/mark_all_read.php', { method: 'POST' });
+                if (response.ok) {
+                    fetchNotifications(); // Refresh list and badge
+                } else {
+                    console.error('Failed to mark all notifications as read.');
+                }
+            } catch (error) {
+                console.error('Error marking all notifications as read:', error);
+            }
+        });
+    }
+
+    // Fetch and render notifications
+    async function fetchNotifications() {
+        try {
+            const response = await fetch('/foodbank/backend/api/notifications/get_notifications.php');
+            if (!response.ok) throw new Error('Failed to fetch notifications');
+            const notifications = await response.json();
+
+            notificationList.innerHTML = ''; // Clear existing
+            let unreadCount = 0;
+
+            if (notifications.length === 0) {
+                notificationList.appendChild(noNotificationsMessage);
+                noNotificationsMessage.style.display = 'block';
+            } else {
+                noNotificationsMessage.style.display = 'none';
+                notifications.forEach(notif => {
+                    if (!notif.Is_Read) unreadCount++;
+                    const item = document.createElement('div');
+                    item.classList.add('notification-item');
+                    if (!notif.Is_Read) item.classList.add('unread');
+                    item.dataset.notificationId = notif.Notification_ID;
+                    item.innerHTML = `
+                        <div class="notification-icon"><i class="fas fa-bell"></i></div>
+                        <div class="notification-content">
+                            <div class="notification-message">${notif.Message}</div>
+                            <div class="notification-time">${new Date(notif.Created_At).toLocaleString()}</div>
+                        </div>
+                    `;
+                    item.addEventListener('click', async function() {
+                        // Mark as read and navigate
+                        await fetch(`/foodbank/backend/api/notifications/mark_as_read.php?id=${notif.Notification_ID}`, { method: 'POST' });
+                        notificationDropdown.classList.remove('show'); // Close dropdown
+                        if (notif.Link) {
+                            loadComponent('main-display', notif.Link); // Navigate using SPA loader
+                        }
+                        fetchNotifications(); // Refresh to update badge and item status
+                    });
+                    notificationList.appendChild(item);
+                });
+            }
+            notificationBadge.textContent = unreadCount > 0 ? unreadCount : '';
+            notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    }
+
+    // Initial fetch and poll every 30 seconds
+    fetchNotifications();
+    if (notificationPollingInterval) clearInterval(notificationPollingInterval); // Clear existing interval if any
+    notificationPollingInterval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+};
+
+// =====================================================================================================================
+// 5. Global Search Functionality
+// =====================================================================================================================
+function initGlobalSearch() {
+    const globalSearchInput = document.getElementById('global-search-input');
+    if (globalSearchInput && !globalSearchInput.dataset.listener) {
+        globalSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = this.value.trim();
+                if (query) {
+                    loadComponent('main-display', `/foodbank/frontend/views/admin/search_results.php?query=${encodeURIComponent(query)}`);
+                    this.value = ''; 
+                }
+            }
+        });
+        globalSearchInput.dataset.listener = 'true';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initGlobalSearch);

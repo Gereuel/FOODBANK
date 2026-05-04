@@ -61,6 +61,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Save the changes
         $pdo->commit();
+
+        // Create a notification for the admin
+        $stmt_notif = $pdo->prepare("
+            INSERT INTO NOTIFICATIONS (Account_ID, Type, Message, Link)
+            VALUES (?, ?, ?, ?)
+        ");
+        $notif_message = "New user '{$first_name} {$last_name}' ({$account_type}) registered.";
+        $stmt_notif->execute([$_SESSION['Account_ID'], 'new_user', $notif_message, '/foodbank/frontend/views/admin/user_management.php']);
         
         // Redirect back to the admin dashboard with a success message
         header("Location: /foodbank/frontend/views/admin/admin_index.php?status=user_added");

@@ -1,11 +1,13 @@
 <!-- Sidebar Header -->
-<div class="sidebar-header">
-    <img src="/foodbank/frontend/assets/images/logo.png" alt="Logo" class="logo-img">
-    <div class="logo-text">
-        <h1>Food Bank</h1>
-        <span>Admin Panel</span>
+<a href="#" class="nav-link sidebar-brand-link" data-target="/foodbank/frontend/views/admin/dashboard_home.php" style="text-decoration: none; display: block;">
+    <div class="sidebar-header">
+        <img src="/foodbank/frontend/assets/images/logo.png" alt="Logo" class="logo-img">
+        <div class="logo-text">
+            <h1>Food Bank</h1>
+            <span>Admin Panel</span>
+        </div>
     </div>
-</div>
+</a>
 
 <!-- Sidebar Navigation -->
 <nav class="sidebar-nav">
@@ -53,9 +55,9 @@
             </a>
         </li>
 
-        <!-- Settings (no view yet) -->
+        <!-- Settings -->
         <li>
-            <a href="#" class="nav-link" data-target="/frontend/views/admin/settings.php">
+            <a href="#" class="nav-link" data-target="/foodbank/frontend/views/admin/settings.php">
                 <i class="fas fa-gear"></i>
                 <span class="menu-text">Settings</span>
             </a>

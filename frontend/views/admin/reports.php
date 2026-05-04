@@ -136,41 +136,27 @@ $max_donations = max(1, ...array_column($foodbank_inventory, 'donations_received
 <!-- Reports -->
 <section class="content-area">
     <header class="page-header">
-        <h2>Food Bank App Reports</h2>
-        <p>View and Export all Applications Activities</p>
+        <div class="rpt-header-title">
+            <h2>Food Bank App Reports</h2>
+            <p>Detailed performance analytics and system logs</p>
+        </div>
 
-        <!-- Export -->
-        <div class="toolbar-filter-wrap">
-            <button class="toolbar-btn" id="export-btn">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Export
-            </button>
+        <div class="rpt-header-controls">
+            <div class="filter-bar">
+                <span class="filter-bar-label">Range:</span>
+                <a href="#" class="range-btn <?= $range == '7' ? 'active' : '' ?>" data-range="7">7D</a>
+                <a href="#" class="range-btn <?= $range == '30' ? 'active' : '' ?>" data-range="30">30D</a>
+                <a href="#" class="range-btn <?= $range == '90' ? 'active' : '' ?>" data-range="90">90D</a>
+                <a href="#" class="range-btn <?= $range == '365' ? 'active' : '' ?>" data-range="365">1Y</a>
+            </div>
 
-            <div class="filter-dropdown" id="export-dropdown">
-                <div class="export-options">
-                    <button class="export-option-btn" id="export-csv-btn">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                        </svg>
-                        Export as CSV
-                    </button>
-                    <button class="export-option-btn" id="export-pdf-btn">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                        </svg>
-                        Export as PDF
-                    </button>
-                </div>
+            <div class="rpt-export-row">
+                <button class="toolbar-btn rpt-btn-csv" id="export-csv-btn">
+                    <i class="fas fa-file-csv"></i> CSV Export
+                </button>
+                <button class="toolbar-btn rpt-btn-pdf" id="export-pdf-btn">
+                    <i class="fas fa-file-pdf"></i> PDF Report
+                </button>
             </div>
         </div>
     </header>
@@ -355,10 +341,10 @@ $max_donations = max(1, ...array_column($foodbank_inventory, 'donations_received
      SCRIPTS — single block, guaranteed execution order
 ════════════════════════════════════════════════════════════ -->
 <script>
-(function () {
+window.initReports = function () {
 
     // ── Chart data from PHP ───────────────────────────────────
-    const RPT_DATA = {
+    var RPT_DATA = {
         trendLabels : <?= json_encode($trend_labels) ?>,
         trendCounts : <?= json_encode($trend_counts) ?>,
         typeLabels  : <?= json_encode($type_labels)  ?>,
@@ -369,23 +355,17 @@ $max_donations = max(1, ...array_column($foodbank_inventory, 'donations_received
         inactiveUsers:<?= (int)$user_stats['disabled_users'] ?>,
     };
 
-    // ── Export dropdown ───────────────────────────────────────
-    const exportBtn      = document.getElementById('export-btn');
-    const exportDropdown = document.getElementById('export-dropdown');
-
-    exportBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        exportDropdown.classList.toggle('show');
-    });
-    document.addEventListener('click', function (e) {
-        if (!exportBtn.contains(e.target) && !exportDropdown.contains(e.target)) {
-            exportDropdown.classList.remove('show');
-        }
+    // ── Range Selection ───────────────────────────────────────
+    document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const r = this.getAttribute('data-range');
+            loadComponent('main-display', `/foodbank/frontend/views/admin/reports.php?range=${r}`);
+        });
     });
 
     // ── CSV Export ────────────────────────────────────────────
     document.getElementById('export-csv-btn').addEventListener('click', function () {
-        exportDropdown.classList.remove('show');
         const rows = [
             ['Food Bank App — Reports Export', <?= json_encode($range_label) ?>, <?= json_encode(date('Y-m-d')) ?>],
             [],
@@ -412,7 +392,9 @@ $max_donations = max(1, ...array_column($foodbank_inventory, 'donations_received
             [<?= json_encode($fb['Name']) ?>, <?= json_encode($fb['Address']) ?>, <?= (int)$fb['donations_received'] ?>],
             <?php endforeach; ?>
         ];
-        const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+        var csv  = rows.map(r => r.map(v => {
+            return '"' + String(v).replace(/"/g, '""') + '"';
+        }).join(',')).join('\n');
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const a    = Object.assign(document.createElement('a'), {
             href: URL.createObjectURL(blob),
@@ -425,7 +407,6 @@ $max_donations = max(1, ...array_column($foodbank_inventory, 'donations_received
 
     // ── PDF Export ────────────────────────────────────────────
     document.getElementById('export-pdf-btn').addEventListener('click', function () {
-        exportDropdown.classList.remove('show');
         window.print();
     });
 
@@ -545,6 +526,5 @@ $max_donations = max(1, ...array_column($foodbank_inventory, 'donations_received
         };
         document.head.appendChild(script);
     }
-
-})();
+};
 </script>

@@ -1,0 +1,137 @@
+/* ══════════════════════════════════════════════════════════════
+   indi_header.css
+   Individual / Donor Welcome Header Banner Styles
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Header Wrapper ──────────────────────────────────────────
+   Wraps both the green bar and the card together.
+   Position: relative so the bar and card can overlap cleanly.
+─────────────────────────────────────────────────────────────── */
+.header-wrapper {
+    position: relative;
+    margin-bottom: 28px;
+}
+
+/* ── Green Accent Bar ────────────────────────────────────────
+   Solid green strip anchored to the TOP of .header-wrapper.
+   Its bottom half is covered by the welcome-header card.
+─────────────────────────────────────────────────────────────── */
+.header-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70%;          /* covers the upper portion of the wrapper  */
+    background-color: #3a8c3f;
+    border-radius: 0;     /* flush with main-content edges            */
+    z-index: 0;
+}
+
+/* ── Welcome Header Card ─────────────────────────────────────
+   Full-bleed background image with text overlaid on top.
+─────────────────────────────────────────────────────────────── */
+.welcome-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    border-radius: 16px;
+    overflow: hidden;
+    min-height: 180px;
+    margin: 24px 28px 0 28px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+    /* Fallback colour while image loads */
+    background-color: #5a9e6f;
+}
+
+/* The <img> fills the entire card as a background */
+.welcome-header .banner-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: right center;
+    display: block;
+    z-index: 0;
+}
+
+/* Dark-to-transparent gradient overlay so text is readable */
+.welcome-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to right,
+        rgba(30, 60, 30, 0.62) 0%,
+        rgba(30, 60, 30, 0.35) 50%,
+        rgba(0, 0, 0, 0.05) 100%
+    );
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* ── Text Content ────────────────────────────────────────────── */
+.welcome-header__content {
+    position: relative;
+    z-index: 2;             /* sits above the overlay */
+    padding: 36px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.welcome-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.welcome-subtitle {
+    font-family: 'Courier New', 'Courier', monospace;
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+/* Hide the separate image column — image is now full-bleed */
+.welcome-header__image {
+    display: none;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .welcome-header {
+        margin: 20px 16px 0 16px;
+    }
+
+    .welcome-header__image {
+        width: 200px;
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 640px) {
+    .welcome-header {
+        margin: 16px 12px 0 12px;
+        min-height: 110px;
+    }
+
+    .welcome-header__image {
+        display: none;
+    }
+
+    .welcome-header__content {
+        padding: 24px 20px;
+    }
+
+    .welcome-title {
+        font-size: 22px;
+    }
+}

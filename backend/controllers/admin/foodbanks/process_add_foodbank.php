@@ -106,12 +106,20 @@ try {
         $mgr_email, $mgr_phone, $mgr_address
     ]);
 
+    // Create a notification for the admin
+    $stmt_notif = $pdo->prepare("
+        INSERT INTO NOTIFICATIONS (Account_ID, Type, Message, Link)
+        VALUES (?, ?, ?, ?)
+    ");
+    $notif_message = "New food bank '{$org_name}' registered and awaiting verification.";
+    $stmt_notif->execute([$_SESSION['Account_ID'], 'new_foodbank', $notif_message, '/foodbank/frontend/views/admin/foodbanks.php']);
+
     $pdo->commit();
-    header("Location: /foodbank/frontend/views/admin/donations.php?success=foodbank_added"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?success=foodbank_added"); exit();
 
 } catch (PDOException $e) {
     $pdo->rollBack();
     error_log("Add FoodBank Error: " . $e->getMessage());
-    header("Location: /foodbank/frontend/views/admin/donations.php?error=db_error"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=db_error"); exit();
 }
 ?>

@@ -41,6 +41,7 @@ try {
     $adminFirstName = $admin['First_Name'];
     $adminLastName = $admin['Last_Name'];
     $adminEmail = $admin['Email'];
+    $adminProfilePic = $admin['Profile_Picture_URL'];
     
     // Debug: Verify variables are set
     error_log("DEBUG - Admin Name: " . $adminFirstName . " " . $adminLastName);
@@ -86,18 +87,23 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Bank - Admin</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@700&display=swap"/>
+    
     <!-- Global CSS -->
     <link rel="stylesheet" href="../../assets/css/global/_variables.css">
     <link rel="stylesheet" href="../../assets/css/global/_resets.css">
     <link rel="stylesheet" href="../../assets/css/global/_layout.css">
     <link rel="stylesheet" href="../../assets/css/global/_typography.css">
+    
     <!-- Category CSS -->
     <link rel="stylesheet" href="../../assets/css/pages/admin/adminDashboard.css">
     <link rel="stylesheet" href="../../assets/css/pages/admin/user_management.css">
     <link rel="stylesheet" href="../../assets/css/pages/admin/admin-animations.css">
+    
     <link rel="icon" href="../../../favicon.ico">
+
 </head>
 <body>
     <div class="app-container">
@@ -116,7 +122,7 @@ try {
             First_Name: "<?php echo htmlspecialchars($adminFirstName); ?>",
             Last_Name: "<?php echo htmlspecialchars($adminLastName); ?>",
             Email: "<?php echo htmlspecialchars($adminEmail); ?>",
-            Profile_Picture_URL: null
+            Profile_Picture_URL: "<?php echo htmlspecialchars($adminProfilePic); ?>"
         };
         console.log('Real Admin Data from PHP:', realAdminData);
         console.log('First Name Value:', "<?php echo htmlspecialchars($adminFirstName); ?>");

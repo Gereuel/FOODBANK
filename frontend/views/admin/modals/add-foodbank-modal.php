@@ -35,10 +35,11 @@
         </div>
 
         <div class="modal-body">
-            <form id="addFoodBankForm"
+            <form id="addFoodBankForm" 
                 action="/foodbank/backend/controllers/admin/foodbanks/process_add_foodbank.php"
                 method="POST"
-                enctype="multipart/form-data">
+                enctype="multipart/form-data"
+                novalidate>
 
                 <!-- Step 1: Organization -->
                 <div class="form-step" id="form-step-1">
