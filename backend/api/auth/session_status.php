@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/auth_redirect.php';
+require_once __DIR__ . '/../../helpers/auth_redirect.php';
 
 $isLoggedIn = isset($_SESSION['Account_ID']);
 

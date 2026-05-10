@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Compatibility for code or saved links that still request /foodbank/... after
+# deploying this project at the domain root.
+RewriteCond %{REQUEST_URI} ^/foodbank/(.+)$
+RewriteCond %{DOCUMENT_ROOT}/%1 -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/%1 -d
+RewriteRule ^foodbank/(.+)$ /$1 [L]

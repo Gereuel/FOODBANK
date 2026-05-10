@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['Account_ID'])) {
     $first_name  = $_POST['first_name'];

@@ -9,7 +9,7 @@ if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'PA
 }
 
 if (!isset($pdo)) {
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+    require_once __DIR__ . '/../../../../backend/config/database.php';
 }
 
 $selectedId = isset($_GET['id']) ? max(0, (int) $_GET['id']) : 0;

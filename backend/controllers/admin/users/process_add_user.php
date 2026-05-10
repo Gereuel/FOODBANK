@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 
 // --- CRITICAL SECURITY CHECK ---
 // Only allow access if the user is logged in AND is an Admin ('AA')
@@ -68,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             VALUES (?, ?, ?, ?)
         ");
         $notif_message = "New user '{$first_name} {$last_name}' ({$account_type}) registered.";
-        $stmt_notif->execute([$_SESSION['Account_ID'], 'new_user', $notif_message, '/foodbank/frontend/views/admin/user_management.php']);
+        $stmt_notif->execute([$_SESSION['Account_ID'], 'new_user', $notif_message, app_url('/frontend/views/admin/user_management.php')]);
         
         // Redirect back to the admin dashboard with a success message
         header("Location: /foodbank/frontend/views/admin/admin_index.php?status=user_added");

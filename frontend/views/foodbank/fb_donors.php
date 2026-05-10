@@ -8,7 +8,7 @@ if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'FA
     exit('Unauthorized');
 }
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../backend/config/database.php';
 
 function fb_donor_date(?string $date): string
 {

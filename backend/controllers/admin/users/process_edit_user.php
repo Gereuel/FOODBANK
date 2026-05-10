@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 
 // Security check
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {

@@ -1,11 +1,13 @@
 <?php
 
+require_once __DIR__ . '/../config/app.php';
+
 function auth_dashboard_path(?string $accountType): ?string
 {
     $redirects = [
-        'AA' => '/foodbank/frontend/views/admin/admin_index.php',
-        'FA' => '/foodbank/frontend/views/foodbank/index.php',
-        'PA' => '/foodbank/frontend/views/individual/pa_index.php',
+        'AA' => app_url('/frontend/views/admin/admin_index.php'),
+        'FA' => app_url('/frontend/views/foodbank/index.php'),
+        'PA' => app_url('/frontend/views/individual/pa_index.php'),
     ];
 
     return $redirects[$accountType] ?? null;
@@ -33,10 +35,10 @@ function redirect_authenticated_user_to_dashboard(): void
     }
 }
 
-function redirect_to_dashboard_or_login(string $loginPath = '/foodbank/login.php'): void
+function redirect_to_dashboard_or_login(string $loginPath = '/login.php'): void
 {
     redirect_authenticated_user_to_dashboard();
 
-    header('Location: ' . $loginPath);
+    header('Location: ' . app_url($loginPath));
     exit();
 }

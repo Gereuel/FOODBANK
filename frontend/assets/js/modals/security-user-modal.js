@@ -1,5 +1,10 @@
 // security-user-modal.js — full corrected version
 
+function securityAppUrl(path) {
+    const base = window.FOODBANK_BASE_URL || (window.location.pathname.startsWith('/foodbank/') ? '/foodbank' : '');
+    return `${base}/${String(path || '').replace(/^\/+/, '')}`;
+}
+
 function openSecurityModal(user) {
     const fullName = [user.First_Name, user.Middle_Name, user.Last_Name].filter(Boolean).join(' ');
 
@@ -66,7 +71,7 @@ function initSecurityModal() {
             btn.textContent = 'Generating...';
             btn.disabled    = true;
 
-            fetch('/foodbank/backend/controllers/auth/password_reset_token.php', {
+            fetch(securityAppUrl('/backend/controllers/auth/password_reset_token.php'), {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body:    `account_id=${accountId}`
@@ -119,7 +124,7 @@ function initSecurityModal() {
 
             btn.disabled = true;
 
-            fetch('/foodbank/backend/controllers/admin/users/process_toggle_status.php', {
+            fetch(securityAppUrl('/backend/controllers/admin/users/process_toggle_status.php'), {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body:    `account_id=${accountId}&status=${newStatus}`

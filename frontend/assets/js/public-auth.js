@@ -1,5 +1,8 @@
 (function () {
-    fetch('/foodbank/backend/api/auth/session_status.php', {
+    const base = window.FOODBANK_BASE_URL || (window.location.pathname.startsWith('/foodbank/') ? '/foodbank' : '');
+    const appUrl = path => `${base}/${String(path || '').replace(/^\/+/, '')}`;
+
+    fetch(appUrl('/backend/api/auth/session_status.php'), {
         credentials: 'same-origin'
     })
         .then(response => response.json())

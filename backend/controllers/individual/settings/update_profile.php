@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 
 if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'PA') {
     http_response_code(401);

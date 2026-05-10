@@ -3,6 +3,11 @@
  * SPA navigation logic for the Personal Account dashboard.
  */
 
+function paAppUrl(path) {
+    const base = window.FOODBANK_BASE_URL || (window.location.pathname.startsWith('/foodbank/') ? '/foodbank' : '');
+    return `${base}/${String(path || '').replace(/^\/+/, '')}`;
+}
+
 function loadPaComponent(containerId, filePath, callback = null) {
     fetch(filePath)
         .then(response => {
@@ -66,7 +71,7 @@ document.addEventListener('click', function(e) {
         const formData = new FormData();
         formData.append('foodbank_id', foodBankId);
 
-        fetch('/foodbank/backend/controllers/individual/foodbanks/toggle_favorite.php', {
+        fetch(paAppUrl('/backend/controllers/individual/foodbanks/toggle_favorite.php'), {
             method: 'POST',
             body: formData
         })
@@ -119,6 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageContent = document.getElementById('pa-page-content');
 
     if (pageContent && pageContent.innerHTML.trim() === '') {
-        loadPaComponent('pa-page-content', '/foodbank/frontend/views/individual/pa_foodbanks.php');
+        loadPaComponent('pa-page-content', paAppUrl('/frontend/views/individual/pa_foodbanks.php'));
     }
 });

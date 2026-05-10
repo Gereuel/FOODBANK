@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/auth_redirect.php';
+require_once __DIR__ . '/../../../backend/helpers/auth_redirect.php';
 
 send_no_store_headers();
 

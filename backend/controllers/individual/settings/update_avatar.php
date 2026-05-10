@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 
 if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'PA') {
     http_response_code(401);
@@ -25,14 +25,14 @@ if (!isset($allowed[$extension])) {
     exit();
 }
 
-$uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/foodbank/uploads/avatars/';
+$uploadDir = app_path('uploads/avatars/');
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0775, true);
 }
 
 $filename = 'avatar_' . (int) $_SESSION['Account_ID'] . '_' . time() . '.' . $extension;
 $targetPath = $uploadDir . $filename;
-$publicUrl = '/foodbank/uploads/avatars/' . $filename;
+$publicUrl = app_url('/uploads/avatars/' . $filename);
 
 if (!move_uploaded_file($_FILES['avatar']['tmp_name'], $targetPath)) {
     http_response_code(500);

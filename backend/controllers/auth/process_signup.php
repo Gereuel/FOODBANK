@@ -1,5 +1,5 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../config/database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     

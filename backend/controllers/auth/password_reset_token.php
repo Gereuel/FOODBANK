@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../config/database.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
@@ -23,7 +23,7 @@ try {
     ");
     $stmt->execute([$token, $expiry, $account_id]);
 
-    $reset_link = "http://localhost/foodbank/frontend/views/auth/reset-password.php?token={$token}";
+    $reset_link = app_absolute_url("/frontend/views/auth/reset-password.php?token={$token}");
 
     echo json_encode(['success' => true, 'reset_link' => $reset_link]);
 

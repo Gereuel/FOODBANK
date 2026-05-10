@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/app.php';
+
 // Configuration settings
 $host     = 'localhost';         
 $dbname   = 'food_bank_app';     // Database Name

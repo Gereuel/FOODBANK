@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     header("Location: ../../../../login.php?error=unauthorized"); exit();
@@ -71,7 +71,7 @@ function uploadMapImage(): ?string {
         header("Location: /foodbank/frontend/views/admin/admin_index.php?error=invalid_file"); exit();
     }
 
-    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/foodbank/uploads/foodbank_maps/';
+    $uploadDir = app_path('uploads/foodbank_maps/');
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
@@ -81,7 +81,7 @@ function uploadMapImage(): ?string {
         header("Location: /foodbank/frontend/views/admin/admin_index.php?error=upload_failed"); exit();
     }
 
-    return '/foodbank/uploads/foodbank_maps/' . $filename;
+    return app_url('/uploads/foodbank_maps/' . $filename);
 }
 
 $org_name         = trim($_POST['organization_name'] ?? '');

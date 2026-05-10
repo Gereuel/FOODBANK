@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     header("Location: ../../../../login.php?error=unauthorized");
@@ -28,7 +28,7 @@ $proof_url = null;
 $has_new_proof = !empty($_FILES['proof_of_delivery']['name']);
 
 if ($has_new_proof) {
-    $upload_dir  = '../../../../uploads/proof/';
+    $upload_dir  = app_path('uploads/proof/');
     $ext         = pathinfo($_FILES['proof_of_delivery']['name'], PATHINFO_EXTENSION);
     $allowed_ext = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
 
@@ -43,7 +43,7 @@ if ($has_new_proof) {
     }
 
     $filename  = uniqid('proof_', true) . '.' . $ext;
-    $proof_url = '/foodbank/uploads/proof/' . $filename;
+    $proof_url = app_url('/uploads/proof/' . $filename);
 
     if (!move_uploaded_file($_FILES['proof_of_delivery']['tmp_name'], $upload_dir . $filename)) {
         header("Location: /foodbank/frontend/views/admin/admin_index.php?page=donations&error=upload_failed");

@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../backend/config/database.php';
 
 // --- CRITICAL SECURITY CHECK ---
 // Only allow access if the user is logged in AND is an Admin ('AA')

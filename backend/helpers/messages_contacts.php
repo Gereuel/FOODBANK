@@ -1,6 +1,6 @@
 <?php
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/schema_columns.php';
+require_once __DIR__ . '/schema_columns.php';
 
 function get_message_contact(PDO $pdo, int $accountId): ?array
 {

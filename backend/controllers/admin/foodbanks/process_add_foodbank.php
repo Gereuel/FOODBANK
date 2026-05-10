@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     header("Location: ../../../../login.php?error=unauthorized"); exit();
@@ -66,7 +66,7 @@ function uploadMapImage(): ?string {
         header("Location: /foodbank/frontend/views/admin/admin_index.php?error=invalid_file"); exit();
     }
 
-    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/foodbank/uploads/foodbank_maps/';
+    $uploadDir = app_path('uploads/foodbank_maps/');
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
@@ -76,7 +76,7 @@ function uploadMapImage(): ?string {
         header("Location: /foodbank/frontend/views/admin/admin_index.php?error=upload_failed"); exit();
     }
 
-    return '/foodbank/uploads/foodbank_maps/' . $filename;
+    return app_url('/uploads/foodbank_maps/' . $filename);
 }
 
 $required = ['organization_name', 'physical_address', 'org_email', 'org_password',
@@ -118,7 +118,7 @@ if ($operating_days === '') {
 // Handle legal documents upload
 $legal_url = '';
 if (!empty($_FILES['legal_documents']['name'])) {
-    $upload_dir  = '../../../../uploads/legal/';
+    $upload_dir  = app_path('uploads/legal/');
     $ext         = pathinfo($_FILES['legal_documents']['name'], PATHINFO_EXTENSION);
     $allowed_ext = ['pdf', 'zip'];
 
@@ -129,7 +129,7 @@ if (!empty($_FILES['legal_documents']['name'])) {
     if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
 
     $filename  = uniqid('legal_', true) . '.' . $ext;
-    $legal_url = '/foodbank/uploads/legal/' . $filename;
+    $legal_url = app_url('/uploads/legal/' . $filename);
     move_uploaded_file($_FILES['legal_documents']['tmp_name'], $upload_dir . $filename);
 }
 
@@ -194,7 +194,7 @@ try {
         VALUES (?, ?, ?, ?)
     ");
     $notif_message = "New food bank '{$org_name}' registered and awaiting verification.";
-    $stmt_notif->execute([$_SESSION['Account_ID'], 'new_foodbank', $notif_message, '/foodbank/frontend/views/admin/foodbanks.php']);
+    $stmt_notif->execute([$_SESSION['Account_ID'], 'new_foodbank', $notif_message, app_url('/frontend/views/admin/foodbanks.php')]);
 
     $pdo->commit();
     header("Location: /foodbank/frontend/views/admin/admin_index.php?success=foodbank_added"); exit();

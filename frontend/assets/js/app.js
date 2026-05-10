@@ -2,6 +2,11 @@
 // 1. Core Functions
 // =====================================================================================================================
 
+function appUrl(path) {
+    const base = window.FOODBANK_BASE_URL || (window.location.pathname.startsWith('/foodbank/') ? '/foodbank' : '');
+    return `${base}/${String(path || '').replace(/^\/+/, '')}`;
+}
+
 // Function to dynamically load HTML components
 function moveModalsToBody() {
     document.querySelectorAll('.modal').forEach(modal => {
@@ -79,7 +84,7 @@ function updateProfileUI(userData) {
     emailElement.textContent = userData.Email;
 
     // FIXED: Use the absolute web path for the fallback image too!
-    const defaultAvatar = '/foodbank/frontend/assets/images/default-avatar.png'; 
+    const defaultAvatar = appUrl('/frontend/assets/images/default-avatar.png');
     
     if (userData.Profile_Picture_URL && userData.Profile_Picture_URL !== "") {
         avatarElement.src = userData.Profile_Picture_URL;
@@ -92,11 +97,10 @@ function updateProfileUI(userData) {
 // 2. Initialize the Dashboard
 // =====================================================================================================================
 
-// FIXED: Added '/foodbank/' at the start of the paths
-loadComponent('sidebar-container', '/foodbank/frontend/components/admin/admin_sideBar.php');
+loadComponent('sidebar-container', appUrl('/frontend/components/admin/admin_sideBar.php'));
 
 // Load Topbar, then fetch user data
-loadComponent('topbar-container', '/foodbank/frontend/components/admin/admin_topBar.php', () => {
+loadComponent('topbar-container', appUrl('/frontend/components/admin/admin_topBar.php'), () => {
     // Use real admin data from PHP or fallback to mock data
     const adminData = typeof realAdminData !== 'undefined' ? realAdminData : {
         First_Name: "Juan", 
@@ -109,7 +113,7 @@ loadComponent('topbar-container', '/foodbank/frontend/components/admin/admin_top
 });
 
 // Load the default Dashboard view 
-loadComponent('main-display', '/foodbank/frontend/views/admin/dashboard_home.php');
+loadComponent('main-display', appUrl('/frontend/views/admin/dashboard_home.php'));
 
 
 // =====================================================================================================================
@@ -237,7 +241,7 @@ window.initNotifications = function() {
     if (markAllReadBtn) {
         markAllReadBtn.addEventListener('click', async function() {
             try {
-                const response = await fetch('/foodbank/backend/api/notifications/mark_all_read.php', { method: 'POST' });
+                const response = await fetch(appUrl('/backend/api/notifications/mark_all_read.php'), { method: 'POST' });
                 if (response.ok) {
                     fetchNotifications(); // Refresh list and badge
                 } else {
@@ -252,7 +256,7 @@ window.initNotifications = function() {
     // Fetch and render notifications
     async function fetchNotifications() {
         try {
-            const response = await fetch('/foodbank/backend/api/notifications/get_notifications.php');
+            const response = await fetch(appUrl('/backend/api/notifications/get_notifications.php'));
             if (!response.ok) throw new Error('Failed to fetch notifications');
             const notifications = await response.json();
 
@@ -279,7 +283,7 @@ window.initNotifications = function() {
                     `;
                     item.addEventListener('click', async function() {
                         // Mark as read and navigate
-                        await fetch(`/foodbank/backend/api/notifications/mark_as_read.php?id=${notif.Notification_ID}`, { method: 'POST' });
+                        await fetch(appUrl(`/backend/api/notifications/mark_as_read.php?id=${notif.Notification_ID}`), { method: 'POST' });
                         notificationDropdown.classList.remove('show'); // Close dropdown
                         if (notif.Link) {
                             loadComponent('main-display', notif.Link); // Navigate using SPA loader
@@ -314,7 +318,7 @@ function initGlobalSearch() {
                 e.preventDefault();
                 const query = this.value.trim();
                 if (query) {
-                    loadComponent('main-display', `/foodbank/frontend/views/admin/search_results.php?query=${encodeURIComponent(query)}`);
+                    loadComponent('main-display', appUrl(`/frontend/views/admin/search_results.php?query=${encodeURIComponent(query)}`));
                     this.value = ''; 
                 }
             }

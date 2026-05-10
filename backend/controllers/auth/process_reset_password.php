@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../config/database.php';
 
 if (!isset($_SESSION['reset_verified']) || $_SESSION['reset_verified'] !== true) {
     header("Location: ../../../login.php"); exit();

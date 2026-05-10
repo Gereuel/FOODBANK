@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 
 // Security Check
 if (!isset($_SESSION['Account_ID']) || $_SESSION['Account_Type'] !== 'AA') {
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture'])) 
     }
 
     // Setup Directory
-    $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/foodbank/uploads/avatars/';
+    $upload_dir = app_path('uploads/avatars/');
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0755, true);
     }
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture'])) 
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
     $filename = 'avatar_' . $_SESSION['Account_ID'] . '_' . time() . '.' . $extension;
     $target_path = $upload_dir . $filename;
-    $public_url = '/foodbank/uploads/avatars/' . $filename;
+    $public_url = app_url('/uploads/avatars/' . $filename);
 
     if (move_uploaded_file($file['tmp_name'], $target_path)) {
         try {

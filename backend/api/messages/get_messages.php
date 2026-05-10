@@ -2,8 +2,8 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/messages_contacts.php';
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../helpers/messages_contacts.php';
 
 if (!isset($_SESSION['Account_ID'])) {
     http_response_code(401);
