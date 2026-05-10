@@ -101,6 +101,7 @@ function formatTime($time) {
 <div class="alert alert-error">
     <?php $msgs = [
         'missing_fields'  => 'Please fill in all required fields.',
+        'password_mismatch' => 'Organization passwords do not match.',
         'email_taken'     => 'That email is already in use.',
         'invalid_file'    => 'Invalid file type.',
         'upload_failed'   => 'File upload failed.',
@@ -242,7 +243,7 @@ function formatTime($time) {
             </thead>
             <tbody>
                 <?php foreach ($foodbanks as $fb): ?>
-                <tr>
+                <tr data-org-status="<?= htmlspecialchars($fb['Org_Status'] ?? '') ?>">
                     <td><?= htmlspecialchars($fb['Organization_Name']) ?></td>
                     <td><?= htmlspecialchars($fb['Org_Email'] ?? $fb['Public_Email'] ?? '—') ?></td>
                     <td><?= formatTime($fb['Time_Open']) ?> - <?= formatTime($fb['Time_Close']) ?></td>

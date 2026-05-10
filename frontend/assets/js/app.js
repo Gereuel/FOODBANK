@@ -47,6 +47,35 @@ function loadComponent(containerId, filePath, callback = null) {
         .catch(error => console.error(`Error loading ${filePath}:`, error));
 }
 
+function currentAdminPagePath() {
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get('page') || '';
+    const passthrough = new URLSearchParams();
+
+    ['success', 'status', 'error', 'range', 'query'].forEach(key => {
+        const value = params.get(key);
+        if (value) passthrough.set(key, value);
+    });
+
+    const pages = {
+        dashboard: '/frontend/views/admin/dashboard_home.php',
+        home: '/frontend/views/admin/dashboard_home.php',
+        users: '/frontend/views/admin/user_management.php',
+        user_management: '/frontend/views/admin/user_management.php',
+        password_security: '/frontend/views/admin/password-security.php',
+        donations: '/frontend/views/admin/donations.php',
+        foodbanks: '/frontend/views/admin/foodbanks.php',
+        foodbank_managers: '/frontend/views/admin/foodbank-managers.php',
+        reports: '/frontend/views/admin/reports.php',
+        settings: '/frontend/views/admin/settings.php',
+        notifications: '/frontend/views/admin/notifications.php',
+    };
+
+    const target = pages[page] || pages.dashboard;
+    const suffix = passthrough.toString();
+    return appUrl(target + (suffix ? `?${suffix}` : ''));
+}
+
 // In toolbar.js
 function initPageScripts() {
     if (typeof initToolbar       === 'function') initToolbar();
@@ -112,8 +141,8 @@ loadComponent('topbar-container', appUrl('/frontend/components/admin/admin_topBa
     updateProfileUI(adminData);
 });
 
-// Load the default Dashboard view 
-loadComponent('main-display', appUrl('/frontend/views/admin/dashboard_home.php'));
+// Load the requested admin view, or the default dashboard.
+loadComponent('main-display', currentAdminPagePath());
 
 
 // =====================================================================================================================

@@ -14,6 +14,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $account_type = $_POST['account_type']; // 'PA' or 'FA' or 'AA'
     $email = $_POST['email'];
     $phone_number = $_POST['phone_number'];
+
+    if (!in_array($account_type, ['PA', 'FA', 'AA'], true)) {
+        header("Location: ../../../signup.php?error=invalid_account_type");
+        exit();
+    }
     
     // Hash the password securely
     $password_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -56,6 +61,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // STEP 3: Insert into ACCOUNTS table
         $stmtAccount = $pdo->prepare("INSERT INTO ACCOUNTS (User_ID, Account_Type, Custom_App_ID, Email, Phone_Number, Password_Hash) VALUES (?, ?, ?, ?, ?, ?)");
         $stmtAccount->execute([$new_user_id, $account_type, $custom_app_id, $email, $phone_number, $password_hash]);
+
+        // Notify every admin that a public signup created a new account.
+        $stmtAdmins = $pdo->query("SELECT Account_ID FROM ACCOUNTS WHERE Account_Type = 'AA'");
+        $adminAccountIds = $stmtAdmins->fetchAll(PDO::FETCH_COLUMN);
+
+        if (!empty($adminAccountIds)) {
+            $stmtNotif = $pdo->prepare("
+                INSERT INTO NOTIFICATIONS (Account_ID, Type, Message, Link)
+                VALUES (?, ?, ?, ?)
+            ");
+            $notifMessage = "New user '{$first_name} {$last_name}' ({$account_type}) created an account.";
+            $notifLink = app_url('/frontend/views/admin/user_management.php');
+
+            foreach ($adminAccountIds as $adminAccountId) {
+                $stmtNotif->execute([$adminAccountId, 'new_user_signup', $notifMessage, $notifLink]);
+            }
+        }
         
         // Save the changes
         $pdo->commit();
@@ -65,11 +87,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     } catch (PDOException $e) {
         // Rollback any partial database inserts if something fails
-        $pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         die("Registration Failed: " . $e->getMessage());
     }
 } else {
-    header("Location: ../../signup.php");
+    header("Location: ../../../signup.php");
     exit();
 }
 ?>

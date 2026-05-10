@@ -1,171 +1,210 @@
 function initToolbar() {
-    const searchInput    = document.getElementById('search-input');
-    const filterBtn      = document.getElementById('filter-btn');
-    const filterDropdown = document.getElementById('filter-dropdown');
-    const filterBadge    = document.getElementById('filter-badge');
-    const filterApplyBtn = document.getElementById('filter-apply-btn');
-    const filterResetBtn = document.getElementById('filter-reset-btn');
-    const exportBtn      = document.getElementById('export-btn');
-    const exportDropdown = document.getElementById('export-dropdown');
-    const exportCsvBtn   = document.getElementById('export-csv-btn');
-    const exportPdfBtn   = document.getElementById('export-pdf-btn');
-    const showAllBtn     = document.getElementById('show-all-btn');
-    const tableBody      = document.querySelector('.data-table tbody');
+    const toolbars = document.querySelectorAll('.table-toolbar');
 
-    // Guard — minimum requirement is search + table
-    if (!searchInput || !tableBody) return;
+    toolbars.forEach(toolbar => {
+        if (toolbar.dataset.toolbarInitialized === 'true') return;
 
-    let activeFilters = { roles: [], statuses: [], search: '' };
-    const rows = () => Array.from(tableBody.querySelectorAll('tr'));
+        const tableCard = toolbar.closest('.table-card') || toolbar.parentElement;
+        const tableBody = tableCard ? tableCard.querySelector('.data-table tbody') : document.querySelector('.data-table tbody');
+        const searchInput = toolbar.querySelector('#search-input');
+        const filterBtn = toolbar.querySelector('#filter-btn');
+        const filterDropdown = toolbar.querySelector('#filter-dropdown');
+        const filterBadge = toolbar.querySelector('#filter-badge');
+        const filterApplyBtn = toolbar.querySelector('#filter-apply-btn');
+        const filterResetBtn = toolbar.querySelector('#filter-reset-btn');
+        const exportBtn = toolbar.querySelector('#export-btn');
+        const exportDropdown = toolbar.querySelector('#export-dropdown');
+        const exportCsvBtn = toolbar.querySelector('#export-csv-btn');
+        const exportPdfBtn = toolbar.querySelector('#export-pdf-btn');
+        const showAllBtn = toolbar.querySelector('#show-all-btn');
 
-    // ── Search — always init if elements exist ─────────────
-    searchInput.addEventListener('input', function () {
-        activeFilters.search = this.value.toLowerCase().trim();
-        applyFilters();
-    });
+        if (!tableBody && !filterBtn && !exportBtn) return;
 
-    // ── Filter — only init if elements exist ───────────────
-    if (filterBtn && filterDropdown) {
-        filterBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            filterDropdown.classList.toggle('show');
+        toolbar.dataset.toolbarInitialized = 'true';
+        const rows = () => tableBody ? Array.from(tableBody.querySelectorAll('tr')) : [];
+
+        const closeDropdowns = () => {
+            if (filterDropdown) filterDropdown.classList.remove('show');
             if (exportDropdown) exportDropdown.classList.remove('show');
-        });
-        filterDropdown.addEventListener('click', e => e.stopPropagation());
-    }
+        };
 
-    // ── Export — only init if elements exist ───────────────
-    if (exportBtn && exportDropdown) {
-        exportBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            exportDropdown.classList.toggle('show');
-            if (filterDropdown) filterDropdown.classList.remove('show');
-        });
-        exportDropdown.addEventListener('click', e => e.stopPropagation());
-    }
+        const pageMode = detectToolbarMode(toolbar, tableBody);
+        const activeFilters = { search: '', verification: [], orgStatuses: [], roles: [], statuses: [] };
 
-    // ── Close dropdowns on outside click ──────────────────
-    document.addEventListener('click', function () {
-        if (filterDropdown) filterDropdown.classList.remove('show');
-        if (exportDropdown) exportDropdown.classList.remove('show');
-    });
+        if (searchInput && tableBody) {
+            searchInput.addEventListener('input', function () {
+                activeFilters.search = this.value.toLowerCase().trim();
+                applyFilters();
+            });
+        }
 
-    // ── Apply Filter ───────────────────────────────────────
-    if (filterApplyBtn) {
-        filterApplyBtn.addEventListener('click', function () {
-            activeFilters.roles    = [...document.querySelectorAll('input[name="role"]:checked')].map(i => i.value);
-            activeFilters.statuses = [...document.querySelectorAll('input[name="status"]:checked')].map(i => i.value);
-            applyFilters();
+        if (filterBtn && filterDropdown) {
+            filterBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                filterDropdown.classList.toggle('show');
+                if (exportDropdown) exportDropdown.classList.remove('show');
+            });
+            filterDropdown.addEventListener('click', e => e.stopPropagation());
+        }
+
+        if (exportBtn && exportDropdown) {
+            exportBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                exportDropdown.classList.toggle('show');
+                if (filterDropdown) filterDropdown.classList.remove('show');
+            });
+            exportDropdown.addEventListener('click', e => e.stopPropagation());
+        }
+
+        document.addEventListener('click', closeDropdowns);
+
+        if (filterApplyBtn) {
+            filterApplyBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                activeFilters.roles = checkedValues(toolbar, 'role');
+                activeFilters.statuses = checkedValues(toolbar, 'status').map(value => value.toLowerCase());
+                activeFilters.verification = checkedValues(toolbar, 'verification');
+                activeFilters.orgStatuses = checkedValues(toolbar, 'org_status');
+                applyFilters();
+                updateFilterBadge();
+                closeDropdowns();
+            });
+        }
+
+        function resetFilters(e) {
+            if (e) e.preventDefault();
+            activeFilters.search = '';
+            activeFilters.roles = [];
+            activeFilters.statuses = [];
+            activeFilters.verification = [];
+            activeFilters.orgStatuses = [];
+
+            if (searchInput) searchInput.value = '';
+            toolbar.querySelectorAll('input[type="checkbox"]').forEach(input => input.checked = false);
+            rows().forEach(row => row.style.display = '');
             updateFilterBadge();
-            if (filterDropdown) filterDropdown.classList.remove('show');
-        });
-    }
+            closeDropdowns();
+        }
 
-    // ── Reset / Show All ───────────────────────────────────
-    function resetFilters() {
-        activeFilters = { roles: [], statuses: [], search: '' };
-        searchInput.value = '';
-        document.querySelectorAll('input[name="role"]').forEach(i => i.checked = false);
-        document.querySelectorAll('input[name="status"]').forEach(i => i.checked = false);
-        rows().forEach(row => row.style.display = '');
-        updateFilterBadge();
-        if (filterDropdown) filterDropdown.classList.remove('show');
-    }
+        if (filterResetBtn) filterResetBtn.addEventListener('click', resetFilters);
+        if (showAllBtn) showAllBtn.addEventListener('click', resetFilters);
 
-    if (filterResetBtn) filterResetBtn.addEventListener('click', resetFilters);
-    if (showAllBtn)     showAllBtn.addEventListener('click', resetFilters);
+        if (exportCsvBtn && tableBody) {
+            exportCsvBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const headers = tableHeaders(tableBody);
+                const csvRows = [headers.join(',')];
 
-    // ── Apply Filters to Table ─────────────────────────────
-    function applyFilters() {
-        rows().forEach(row => {
-            const cells      = row.querySelectorAll('td');
-            const name       = cells[0]?.textContent.toLowerCase() || '';
-            const email      = cells[1]?.textContent.toLowerCase() || '';
-            const roleText   = cells[2]?.textContent.trim() || '';
-            const roleValue  = getRoleValue(roleText);
-            const statusText = cells[4]?.textContent.trim().toLowerCase() || '';
-            const id         = cells[3]?.textContent.toLowerCase() || '';
-
-            const searchMatch = !activeFilters.search ||
-                name.includes(activeFilters.search) ||
-                email.includes(activeFilters.search) ||
-                id.includes(activeFilters.search) ||
-                roleText.toLowerCase().includes(activeFilters.search);
-
-            const roleMatch = activeFilters.roles.length === 0 ||
-                activeFilters.roles.includes(roleValue);
-
-            const statusMatch = activeFilters.statuses.length === 0 ||
-                activeFilters.statuses.includes(statusText);
-
-            row.style.display = (searchMatch && roleMatch && statusMatch) ? '' : 'none';
-        });
-    }
-
-    function getRoleValue(roleText) {
-        const map = { 'Donor': 'PA', 'Food Bank Manager': 'FA', 'Admin': 'AA' };
-        return map[roleText] || roleText;
-    }
-
-    function updateFilterBadge() {
-        if (!filterBadge) return;
-        const count = activeFilters.roles.length + activeFilters.statuses.length;
-        filterBadge.textContent   = count;
-        filterBadge.style.display = count > 0 ? 'inline-flex' : 'none';
-    }
-
-    // ── Export CSV ─────────────────────────────────────────
-    if (exportCsvBtn) {
-        exportCsvBtn.addEventListener('click', function () {
-            const visibleRows = rows().filter(r => r.style.display !== 'none');
-            const headers     = ['Name', 'Email', 'Role', 'Location', 'Status', 'ID'];
-            const csvRows     = [headers.join(',')];
-            visibleRows.forEach(row => {
-                const cells  = row.querySelectorAll('td');
-                const values = Array.from(cells).slice(0, 6).map(cell => {
-                    const text = cell.textContent.trim().replace(/"/g, '""');
-                    return `"${text}"`;
+                rows().filter(row => row.style.display !== 'none').forEach(row => {
+                    const values = Array.from(row.querySelectorAll('td')).slice(0, headers.length).map(cell => {
+                        const text = cell.textContent.trim().replace(/"/g, '""');
+                        return `"${text}"`;
+                    });
+                    csvRows.push(values.join(','));
                 });
-                csvRows.push(values.join(','));
-            });
-            downloadFile(csvRows.join('\n'), 'users-export.csv', 'text/csv');
-            exportDropdown.classList.remove('show');
-        });
-    }
 
-    // ── Export PDF ─────────────────────────────────────────
-    if (exportPdfBtn) {
-        exportPdfBtn.addEventListener('click', function () {
-            const visibleRows = rows().filter(r => r.style.display !== 'none');
-            const headers     = ['Name', 'Email', 'Role', 'Location', 'Status', 'ID'];
-            let tableHtml = `<table border="1" cellpadding="8" cellspacing="0" style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px;"><thead style="background:#1a4731;color:white;"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
-            visibleRows.forEach((row, i) => {
-                const cells = row.querySelectorAll('td');
-                const bg    = i % 2 === 0 ? '#f9fafb' : '#ffffff';
-                tableHtml  += `<tr style="background:${bg};">`;
-                Array.from(cells).slice(0, 6).forEach(cell => {
-                    tableHtml += `<td>${cell.textContent.trim()}</td>`;
+                downloadFile(csvRows.join('\n'), `${pageMode}-export.csv`, 'text/csv');
+                closeDropdowns();
+            });
+        }
+
+        if (exportPdfBtn && tableBody) {
+            exportPdfBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const headers = tableHeaders(tableBody);
+                let tableHtml = `<table border="1" cellpadding="8" cellspacing="0" style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px;"><thead style="background:#1a4731;color:white;"><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+
+                rows().filter(row => row.style.display !== 'none').forEach((row, index) => {
+                    const bg = index % 2 === 0 ? '#f9fafb' : '#ffffff';
+                    tableHtml += `<tr style="background:${bg};">`;
+                    Array.from(row.querySelectorAll('td')).slice(0, headers.length).forEach(cell => {
+                        tableHtml += `<td>${cell.textContent.trim()}</td>`;
+                    });
+                    tableHtml += '</tr>';
                 });
-                tableHtml += `</tr>`;
+
+                tableHtml += '</tbody></table>';
+                const win = window.open('', '_blank');
+                if (!win) return;
+                win.document.write(`<!DOCTYPE html><html><head><title>Export</title></head><body>${tableHtml}</body></html>`);
+                win.document.close();
+                win.print();
+                closeDropdowns();
             });
-            tableHtml += `</tbody></table>`;
-            const win = window.open('', '_blank');
-            win.document.write(`<!DOCTYPE html><html><head><title>Export</title></head><body>${tableHtml}</body></html>`);
-            win.document.close();
-            win.print();
-            exportDropdown.classList.remove('show');
-        });
-    }
+        }
 
-    // ── Download Helper ────────────────────────────────────
-    function downloadFile(content, filename, type) {
-        const blob = new Blob([content], { type });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href     = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+        function applyFilters() {
+            rows().forEach(row => {
+                const cells = Array.from(row.querySelectorAll('td'));
+                const rowText = row.textContent.toLowerCase();
+                const searchMatch = !activeFilters.search || rowText.includes(activeFilters.search);
+                let filterMatch = true;
 
-} // end initToolbar
+                if (pageMode === 'foodbanks') {
+                    const verificationText = cells[4]?.textContent.trim() || '';
+                    const orgStatusText = row.dataset.orgStatus || '';
+                    filterMatch =
+                        (activeFilters.verification.length === 0 || activeFilters.verification.includes(verificationText)) &&
+                        (activeFilters.orgStatuses.length === 0 || activeFilters.orgStatuses.includes(orgStatusText));
+                } else {
+                    const roleText = cells[2]?.textContent.trim() || '';
+                    const roleValue = getRoleValue(roleText);
+                    const statusText = cells[4]?.textContent.trim().toLowerCase() || '';
+                    filterMatch =
+                        (activeFilters.roles.length === 0 || activeFilters.roles.includes(roleValue)) &&
+                        (activeFilters.statuses.length === 0 || activeFilters.statuses.includes(statusText));
+                }
+
+                row.style.display = (searchMatch && filterMatch) ? '' : 'none';
+            });
+        }
+
+        function updateFilterBadge() {
+            if (!filterBadge) return;
+            const count = activeFilters.roles.length + activeFilters.statuses.length +
+                activeFilters.verification.length + activeFilters.orgStatuses.length;
+            filterBadge.textContent = count;
+            filterBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+    });
+}
+
+function checkedValues(scope, name) {
+    return Array.from(scope.querySelectorAll(`input[name="${name}"]:checked`)).map(input => input.value);
+}
+
+function detectToolbarMode(toolbar, tableBody) {
+    if (toolbar.querySelector('input[name="verification"], input[name="org_status"]')) return 'foodbanks';
+    if (!tableBody) return 'table';
+
+    const headers = tableHeaders(tableBody).map(header => header.toLowerCase());
+    if (headers.includes('office #')) return 'foodbanks';
+    if (headers.includes('role')) return 'users';
+    return 'table';
+}
+
+function tableHeaders(tableBody) {
+    const table = tableBody.closest('table');
+    if (!table) return [];
+
+    return Array.from(table.querySelectorAll('thead th'))
+        .map(th => th.textContent.trim())
+        .filter(text => text && text.toLowerCase() !== 'actions');
+}
+
+function getRoleValue(roleText) {
+    const map = { Donor: 'PA', 'Food Bank Manager': 'FA', Admin: 'AA' };
+    return map[roleText] || roleText;
+}
+
+function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
