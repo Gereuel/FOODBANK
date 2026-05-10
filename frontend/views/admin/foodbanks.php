@@ -11,6 +11,14 @@ $per_page = 10;
 $offset   = ($page - 1) * $per_page;
 
 try {
+    try {
+        $pdo->exec("ALTER TABLE FOOD_BANKS ADD COLUMN Map_Image_URL VARCHAR(255) DEFAULT NULL");
+    } catch (PDOException $e) {
+        if (($e->errorInfo[1] ?? null) !== 1060) {
+            throw $e;
+        }
+    }
+
     // Total count
     $stmt_count = $pdo->query("SELECT COUNT(*) FROM FOOD_BANKS");
     $total      = $stmt_count->fetchColumn();
@@ -33,6 +41,7 @@ try {
             fb.Physical_Address,
             fb.Public_Email,
             fb.Public_Phone,
+            fb.Map_Image_URL,
             fb.Time_Open,
             fb.Time_Close,
             fb.Operating_Days,

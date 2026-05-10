@@ -1,9 +1,10 @@
 <?php
 session_start();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/auth_redirect.php';
 
 if (!isset($_SESSION['pending_account_id'])) {
-    header("Location: ../../../login.php"); exit();
+    redirect_to_dashboard_or_login();
 }
 
 $otp_input  = trim($_POST['otp_code'] ?? '');
@@ -58,13 +59,32 @@ try {
     $_SESSION['Email']        = $user['Email'];
     unset($_SESSION['pending_account_id'], $_SESSION['otp_method']);
 
-    // Redirect by role
-    $redirects = [
-        'AA' => 'frontend/views/admin/admin_index.php',
-        'FA' => 'frontend/views/foodbank/index.php',
-        'PA' => 'frontend/views/individual/pa_index.php',
-    ];
-    header("Location: ../../../" . ($redirects[$user['Account_Type']] ?? 'login.php'));
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS ACCOUNT_LOGIN_ACTIVITY (
+            Activity_ID INT AUTO_INCREMENT PRIMARY KEY,
+            Account_ID INT NOT NULL,
+            IP_Address VARCHAR(45) DEFAULT NULL,
+            User_Agent TEXT DEFAULT NULL,
+            Login_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_login_activity_account (Account_ID),
+            CONSTRAINT fk_login_activity_account
+                FOREIGN KEY (Account_ID) REFERENCES ACCOUNTS(Account_ID)
+                ON DELETE CASCADE ON UPDATE CASCADE
+        )
+    ");
+
+    $stmtActivity = $pdo->prepare("
+        INSERT INTO ACCOUNT_LOGIN_ACTIVITY (Account_ID, IP_Address, User_Agent)
+        VALUES (?, ?, ?)
+    ");
+    $stmtActivity->execute([
+        $user['Account_ID'],
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null
+    ]);
+
+    $dashboardPath = auth_dashboard_path($user['Account_Type']);
+    header('Location: ' . ($dashboardPath ?? '/foodbank/login.php'));
     exit();
 
 } catch (PDOException $e) {

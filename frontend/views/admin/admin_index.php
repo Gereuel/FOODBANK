@@ -98,11 +98,11 @@ try {
     <link rel="stylesheet" href="../../assets/css/global/_typography.css">
     
     <!-- Category CSS -->
-    <link rel="stylesheet" href="../../assets/css/pages/admin/adminDashboard.css">
-    <link rel="stylesheet" href="../../assets/css/pages/admin/user_management.css">
-    <link rel="stylesheet" href="../../assets/css/pages/admin/admin-animations.css">
+    <link rel="stylesheet" href="../../assets/css/pages/admin/adminDashboard.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../../assets/css/pages/admin/user_management.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../../assets/css/pages/admin/admin-animations.css?v=<?php echo time(); ?>">
     
-    <link rel="icon" href="../../../favicon.ico">
+    <link rel="icon" type="image/png" href="/foodbank/frontend/assets/images/logo.png">
 
 </head>
 <body>

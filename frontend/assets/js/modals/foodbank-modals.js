@@ -52,6 +52,7 @@ function fbPrevStep() {
 
 function validateFoodBankStep(step) {
     const stepEl = document.getElementById(`form-step-${step}`);
+    syncOperatingDaysPickers(stepEl);
     const inputs = stepEl.querySelectorAll('input[required], select[required], textarea[required]');
     let valid = true;
 
@@ -74,6 +75,85 @@ function validateFoodBankStep(step) {
     }
 
     return valid;
+}
+
+const FB_DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+function compressOperatingDays(days) {
+    const selected = FB_DAY_ORDER.filter(day => days.includes(day));
+
+    if (selected.length === 7) {
+        return 'Daily';
+    }
+
+    if (!selected.length) {
+        return '';
+    }
+
+    const indexes = selected.map(day => FB_DAY_ORDER.indexOf(day));
+    const isContiguous = indexes.every((index, position) => position === 0 || index === indexes[position - 1] + 1);
+
+    if (isContiguous && selected.length > 1) {
+        return `${selected[0]}-${selected[selected.length - 1]}`;
+    }
+
+    return selected.join(', ');
+}
+
+function syncOperatingDaysPicker(picker) {
+    const hidden = document.getElementById(picker.dataset.hiddenTarget);
+    if (!hidden) return;
+
+    const selectedDays = Array.from(picker.querySelectorAll('input[type="checkbox"]:checked'))
+        .map(input => input.value);
+    hidden.value = compressOperatingDays(selectedDays);
+}
+
+function syncOperatingDaysPickers(scope = document) {
+    scope.querySelectorAll('.operating-days-picker').forEach(syncOperatingDaysPicker);
+}
+
+function setOperatingDaysPicker(hiddenId, value) {
+    const hidden = document.getElementById(hiddenId);
+    const picker = document.querySelector(`.operating-days-picker[data-hidden-target="${hiddenId}"]`);
+    if (!hidden || !picker) return;
+
+    hidden.value = value || '';
+    const normalized = parseOperatingDays(value || '');
+    picker.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.checked = normalized.includes(input.value);
+    });
+    syncOperatingDaysPicker(picker);
+}
+
+function parseOperatingDays(value) {
+    const text = String(value || '').trim().toLowerCase();
+    if (!text) return [];
+    if (['daily', 'everyday', 'every day'].includes(text)) return [...FB_DAY_ORDER];
+
+    const selected = new Set();
+    const dayPattern = /(mon(?:day)?|tue(?:sday)?|tues(?:day)?|wed(?:nesday)?|thu(?:rsday)?|thur(?:sday)?|thurs(?:day)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)(?:\s*(?:-|to)\s*(mon(?:day)?|tue(?:sday)?|tues(?:day)?|wed(?:nesday)?|thu(?:rsday)?|thur(?:sday)?|thurs(?:day)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?))?/gi;
+    let match;
+
+    while ((match = dayPattern.exec(text)) !== null) {
+        const start = dayIndexFromText(match[1]);
+        const end = match[2] ? dayIndexFromText(match[2]) : start;
+        if (start === -1 || end === -1) continue;
+
+        if (start <= end) {
+            for (let i = start; i <= end; i++) selected.add(FB_DAY_ORDER[i]);
+        } else {
+            for (let i = start; i < FB_DAY_ORDER.length; i++) selected.add(FB_DAY_ORDER[i]);
+            for (let i = 0; i <= end; i++) selected.add(FB_DAY_ORDER[i]);
+        }
+    }
+
+    return FB_DAY_ORDER.filter(day => selected.has(day));
+}
+
+function dayIndexFromText(day) {
+    const key = String(day || '').slice(0, 3).toLowerCase();
+    return ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].indexOf(key);
 }
 
 // ── View Food Bank Modal ───────────────────────────────────
@@ -121,7 +201,7 @@ function openEditFoodBankModal(fb) {
     document.getElementById('efb-org-status').value    = fb.Org_Status || 'Pending';
     document.getElementById('efb-time-open').value     = fb.Time_Open ? fb.Time_Open.substring(0, 5) : '';
     document.getElementById('efb-time-close').value    = fb.Time_Close ? fb.Time_Close.substring(0, 5) : '';
-    document.getElementById('efb-days').value          = fb.Operating_Days || '';
+    setOperatingDaysPicker('efb-days', fb.Operating_Days || '');
     document.getElementById('efb-public-email').value  = fb.Public_Email || '';
     document.getElementById('efb-public-phone').value  = fb.Public_Phone || '';
     document.getElementById('efb-mgr-first').value     = fb.Manager_First_Name || '';
@@ -181,5 +261,29 @@ function initFoodBankModals() {
             closeEditFoodBankModal();
             closeDeleteFoodBankModal();
         }
+    });
+
+    document.querySelectorAll('.operating-days-picker input[type="checkbox"]').forEach(input => {
+        if (input.dataset.daysBound === 'true') return;
+        input.dataset.daysBound = 'true';
+        input.addEventListener('change', () => {
+            const picker = input.closest('.operating-days-picker');
+            if (picker) syncOperatingDaysPicker(picker);
+        });
+    });
+
+    ['addFoodBankForm', 'editFoodBankForm'].forEach(id => {
+        const form = document.getElementById(id);
+        if (!form) return;
+        if (form.dataset.daysSubmitBound === 'true') return;
+        form.dataset.daysSubmitBound = 'true';
+        form.addEventListener('submit', event => {
+            syncOperatingDaysPickers(form);
+            const daysInput = form.querySelector('input[name="operating_days"]');
+            if (daysInput && !daysInput.value) {
+                event.preventDefault();
+                alert('Please select at least one operating day.');
+            }
+        });
     });
 }

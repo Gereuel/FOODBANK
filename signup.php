@@ -6,7 +6,7 @@
     <title>Sign Up - Food Bank App</title>
     <link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@300;400;500&family=DM+Serif+Display&family=Inter:wght@400;600&family=Roboto+Flex:wght@400;600&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="frontend/assets/css/pages/signup.css">
-    <link rel="icon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="/foodbank/frontend/assets/images/logo.png">
 </head>
 <body>
 <div class="container">
@@ -16,7 +16,6 @@
     <img src="frontend/assets/images/logo.png" class="logo" alt="Food Bank Logo">
     <h1 class="welcome">Join Us Today!</h1>
     <p class="subtitle">Create your account and start making a difference</p>
-    <link rel="icon" href="favicon.ico">
   </div>
 
   <!-- RIGHT PANEL -->

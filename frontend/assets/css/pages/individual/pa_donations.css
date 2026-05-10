@@ -1,0 +1,364 @@
+.pa-donations {
+    padding: 0 50px 48px;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.donations-header {
+    margin-bottom: 28px;
+}
+
+.donations-header h2 {
+    margin: 0 0 4px;
+    color: #2c2c2c;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.donations-header p {
+    margin: 0;
+    color: #666666;
+    font-size: 14px;
+}
+
+.donations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.donation-row {
+    width: 100%;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border: 1px solid #ebe8e2;
+    border-radius: 14px;
+    padding: 14px 34px 14px 20px;
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.donation-row:hover {
+    border-color: #cfe6d1;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+}
+
+.donation-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.donation-main strong {
+    color: #111111;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.donation-main span {
+    color: #333333;
+    font-size: 13px;
+}
+
+.donation-main small {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #9a9a9a;
+    font-size: 12px;
+}
+
+.donation-quantity {
+    color: #2f7d2d;
+    font-size: 15px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.donations-empty {
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #888888;
+}
+
+.donations-empty i {
+    color: #c7c0b7;
+    font-size: 36px;
+}
+
+.pa-report-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    background: rgba(0, 0, 0, 0.48);
+}
+
+.pa-report-modal[hidden] {
+    display: none;
+}
+
+.pa-report-content {
+    width: min(920px, 100%);
+    max-height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.3);
+}
+
+.pa-report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 24px 28px;
+    background: #3a8c3f;
+    color: #ffffff;
+}
+
+.pa-report-header h2 {
+    margin: 0 0 4px;
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: #ffffff;
+}
+
+.pa-report-header p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    opacity: 1;
+    font-size: 13px;
+}
+
+.pa-report-close {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.pa-report-body {
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 24px;
+}
+
+.pa-report-status-bar,
+.pa-report-section {
+    border: 1px solid #e4e0d8;
+    border-radius: 12px;
+    background: #f8f7f4;
+}
+
+.pa-report-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 22px;
+}
+
+.pa-report-status-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.pa-report-status-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #e8f5e9;
+    color: #2f7d2d;
+}
+
+.pa-report-status-icon--pending {
+    background: #fef3c7;
+    color: #9a5a00;
+}
+
+.pa-report-status-icon--in-transit {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+.pa-report-status-icon--cancelled {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.pa-report-status-label {
+    color: #777777;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.pa-report-status-value {
+    color: #1f1f1f;
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.pa-report-generated {
+    color: #777777;
+    text-align: right;
+    font-size: 12px;
+}
+
+.pa-report-generated strong {
+    display: block;
+    color: #1f1f1f;
+    font-size: 14px;
+}
+
+.pa-report-section {
+    position: relative;
+    padding: 24px 26px;
+    overflow: hidden;
+    flex: 0 0 auto;
+}
+
+.pa-report-section::after {
+    content: '';
+    position: absolute;
+    right: -34px;
+    bottom: -34px;
+    width: 96px;
+    height: 96px;
+    border: 1px solid rgba(58, 140, 63, 0.12);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.pa-report-section h3 {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 18px;
+    color: #1f1f1f;
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+}
+
+.pa-report-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 22px;
+}
+
+.pa-report-grid div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    min-height: 48px;
+}
+
+.pa-report-grid .is-full {
+    grid-column: 1 / -1;
+}
+
+.pa-report-grid span {
+    color: #777777;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.pa-report-grid strong,
+.pa-report-notes {
+    color: #1f1f1f;
+    font-size: 14px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+}
+
+.pa-report-muted {
+    margin: 0;
+    color: #777777;
+    position: relative;
+    z-index: 1;
+}
+
+.pa-report-proof-img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.pa-report-verified {
+    margin: 10px 0 0;
+    color: #2f7d2d;
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+}
+
+.pa-report-notes {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    line-height: 1.55;
+}
+
+body.pa-report-open {
+    overflow: hidden;
+}
+
+@media (max-width: 760px) {
+    .pa-donations {
+        padding: 0 16px 36px;
+    }
+
+    .donation-row {
+        align-items: flex-start;
+        flex-direction: column;
+        padding-right: 20px;
+    }
+
+    .pa-report-modal {
+        padding: 14px;
+    }
+
+    .pa-report-status-bar,
+    .pa-report-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pa-report-status-bar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .pa-report-generated {
+        text-align: left;
+    }
+}

@@ -6,9 +6,82 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     header("Location: ../../../../login.php?error=unauthorized"); exit();
 }
 
+function normalizeOperatingDays($selectedDays): string {
+    if (!is_array($selectedDays)) {
+        return '';
+    }
+
+    $dayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    $selected = [];
+
+    foreach ($dayOrder as $day) {
+        if (in_array($day, $selectedDays, true)) {
+            $selected[] = $day;
+        }
+    }
+
+    if (count($selected) === 7) {
+        return 'Daily';
+    }
+
+    if (empty($selected)) {
+        return '';
+    }
+
+    $indexes = array_map(fn($day) => array_search($day, $dayOrder, true), $selected);
+    $isContiguous = true;
+    for ($i = 1; $i < count($indexes); $i++) {
+        if ($indexes[$i] !== $indexes[$i - 1] + 1) {
+            $isContiguous = false;
+            break;
+        }
+    }
+
+    if ($isContiguous && count($selected) > 1) {
+        return $selected[0] . '-' . $selected[count($selected) - 1];
+    }
+
+    return implode(', ', $selected);
+}
+
+function ensureMapImageColumn(PDO $pdo): void {
+    try {
+        $pdo->exec("ALTER TABLE FOOD_BANKS ADD COLUMN Map_Image_URL VARCHAR(255) DEFAULT NULL");
+    } catch (PDOException $e) {
+        if (($e->errorInfo[1] ?? null) !== 1060) {
+            throw $e;
+        }
+    }
+}
+
+function uploadMapImage(): ?string {
+    if (empty($_FILES['map_image']['name'])) {
+        return null;
+    }
+
+    $ext = strtolower(pathinfo($_FILES['map_image']['name'], PATHINFO_EXTENSION));
+    $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+
+    if (!in_array($ext, $allowed, true)) {
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?error=invalid_file"); exit();
+    }
+
+    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/foodbank/uploads/foodbank_maps/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    $filename = uniqid('map_', true) . '.' . $ext;
+    if (!move_uploaded_file($_FILES['map_image']['tmp_name'], $uploadDir . $filename)) {
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?error=upload_failed"); exit();
+    }
+
+    return '/foodbank/uploads/foodbank_maps/' . $filename;
+}
+
 $required = ['organization_name', 'physical_address', 'org_email', 'org_password',
              'manager_first_name', 'manager_last_name', 'manager_email', 'manager_phone',
-             'manager_address', 'time_open', 'time_close', 'operating_days'];
+             'manager_address', 'time_open', 'time_close'];
 
 foreach ($required as $field) {
     if (empty($_POST[$field])) {
@@ -28,7 +101,7 @@ $verification_status = $_POST['verification_status'] ?? 'Pending';
 $org_status          = $_POST['org_status'] ?? 'Pending';
 $time_open           = $_POST['time_open'];
 $time_close          = $_POST['time_close'];
-$operating_days      = trim($_POST['operating_days']);
+$operating_days      = normalizeOperatingDays($_POST['operating_day_values'] ?? []);
 $public_email        = trim($_POST['public_email'] ?? '');
 $public_phone        = trim($_POST['public_phone'] ?? '');
 $mgr_first           = trim($_POST['manager_first_name']);
@@ -36,6 +109,11 @@ $mgr_last            = trim($_POST['manager_last_name']);
 $mgr_email           = trim($_POST['manager_email']);
 $mgr_phone           = trim($_POST['manager_phone']);
 $mgr_address         = trim($_POST['manager_address']);
+$map_image_url       = uploadMapImage();
+
+if ($operating_days === '') {
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=missing_fields"); exit();
+}
 
 // Handle legal documents upload
 $legal_url = '';
@@ -56,6 +134,8 @@ if (!empty($_FILES['legal_documents']['name'])) {
 }
 
 try {
+    ensureMapImageColumn($pdo);
+
     // Check if org email already exists
     $stmt_check = $pdo->prepare("SELECT FoodBank_ID FROM FOOD_BANKS WHERE Org_Email = ?");
     $stmt_check->execute([$org_email]);
@@ -92,8 +172,9 @@ try {
             Org_Email, Org_Password_Hash, Org_Status,
             Custom_FoodBank_ID,
             Manager_First_Name, Manager_Last_Name,
-            Manager_Email, Manager_Phone, Manager_Address
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            Manager_Email, Manager_Phone, Manager_Address,
+            Map_Image_URL
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt_fb->execute([
         $account_id, $org_name, $physical_address,
@@ -103,7 +184,8 @@ try {
         $org_email, $org_password_hash, $org_status,
         $custom_fb_id,
         $mgr_first, $mgr_last,
-        $mgr_email, $mgr_phone, $mgr_address
+        $mgr_email, $mgr_phone, $mgr_address,
+        $map_image_url
     ]);
 
     // Create a notification for the admin

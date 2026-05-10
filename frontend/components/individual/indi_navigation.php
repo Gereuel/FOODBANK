@@ -14,14 +14,14 @@ $_nav_fullName = isset($firstName, $lastName)
 
 $_nav_email = isset($email) ? htmlspecialchars($email) : '';
 
-$_nav_avatar = (!empty($donor['Profile_Picture']))
-    ? htmlspecialchars($donor['Profile_Picture'])
+$_nav_avatar = (!empty($donor['Profile_Picture_URL']))
+    ? htmlspecialchars($donor['Profile_Picture_URL'])
     : '/foodbank/frontend/assets/images/default-avatar.png';
 ?>
 
 <!-- ── Sidebar Header: Logo ─────────────────────────────────── -->
 <a href="#" class="nav-link sidebar-brand-link" 
-   data-target="/foodbank/frontend/views/individual/pa_home_page.php"
+   data-target="/foodbank/frontend/views/individual/pa_foodbanks.php"
    style="text-decoration: none; display: block;">
     <div class="sidebar-header">
         <img src="/foodbank/frontend/assets/images/logo.png" alt="Food Bank Logo" class="logo-img">
@@ -53,7 +53,7 @@ $_nav_avatar = (!empty($donor['Profile_Picture']))
         <!-- Food Banks -->
         <li class="active">
             <a href="#" class="nav-item nav-link"
-               data-target="/foodbank/frontend/views/individual/pa_home_page.php">
+               data-target="/foodbank/frontend/views/individual/pa_foodbanks.php">
                 <i class="fas fa-heart"></i>
                 <span class="menu-text">Food Banks</span>
             </a>
@@ -89,7 +89,7 @@ $_nav_avatar = (!empty($donor['Profile_Picture']))
         <!-- Account -->
         <li>
             <a href="#" class="nav-item nav-link"
-               data-target="/foodbank/frontend/views/individual/pa_account.php">
+               data-target="/foodbank/frontend/views/individual/pa_settings.php">
                 <i class="far fa-user-circle"></i>
                 <span class="menu-text">Account</span>
             </a>

@@ -1,9 +1,10 @@
 <?php
 session_start();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/auth_redirect.php';
 
 if (!isset($_SESSION['pending_account_id'])) {
-    header("Location: ../../../login.php"); exit();
+    redirect_to_dashboard_or_login();
 }
 
 $method     = $_POST['method'] ?? 'email';

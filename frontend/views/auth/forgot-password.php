@@ -1,4 +1,10 @@
-<?php session_start(); ?>
+<?php
+session_start();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/auth_redirect.php';
+
+send_no_store_headers();
+redirect_authenticated_user_to_dashboard();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +13,7 @@
     <title>Forgot Password - Food Bank App</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Commissioner:wght@400;500;600&family=Roboto+Flex:wght@400;600;700&family=Roboto+Mono&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../assets/css/pages/verification.css">
-    <link rel="icon" href="../../../favicon.ico">
+    <link rel="icon" type="image/png" href="/foodbank/frontend/assets/images/logo.png">
 </head>
 <body>
 <div class="container">

@@ -1,5 +1,18 @@
 <?php
-// pa_home_page.php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'PA') {
+    http_response_code(401);
+    exit('Unauthorized');
+}
+
+if (!isset($pdo)) {
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+}
+
+// pa_foodbanks.php
 // Foodbanks Home Page — injected into #pa-main-content by pa-app.js
 // Requires: $pdo (set in pa_index.php), $donor (logged-in donor row)
 
@@ -41,6 +54,24 @@ try {
 // "Nearby" = all approved+active banks for now.
 // If you add lat/lng columns later, swap in a Haversine query.
 try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS PA_FOOD_BANK_FAVORITES (
+            Favorite_ID INT AUTO_INCREMENT PRIMARY KEY,
+            Account_ID INT NOT NULL,
+            FoodBank_ID INT NOT NULL,
+            Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_pa_foodbank_favorite (Account_ID, FoodBank_ID),
+            INDEX idx_pa_favorite_account (Account_ID),
+            INDEX idx_pa_favorite_foodbank (FoodBank_ID),
+            CONSTRAINT fk_pa_favorite_account
+                FOREIGN KEY (Account_ID) REFERENCES ACCOUNTS(Account_ID)
+                ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_pa_favorite_foodbank
+                FOREIGN KEY (FoodBank_ID) REFERENCES FOOD_BANKS(FoodBank_ID)
+                ON DELETE CASCADE ON UPDATE CASCADE
+        )
+    ");
+
     $stmtNearby = $pdo->prepare("
         SELECT
             fb.FoodBank_ID,
@@ -52,18 +83,18 @@ try {
             fb.Operating_Days,
             fb.Verification_Status,
             fb.Org_Status,
-
-            -- Check if this donor has favourited this food bank
-            -- (add a FAVOURITES table later; for now always 0)
-            0 AS is_favourite
+            CASE WHEN fav.Favorite_ID IS NULL THEN 0 ELSE 1 END AS is_favourite
 
         FROM FOOD_BANKS fb
+        LEFT JOIN PA_FOOD_BANK_FAVORITES fav
+          ON fav.FoodBank_ID = fb.FoodBank_ID
+         AND fav.Account_ID = ?
         WHERE fb.Verification_Status = 'Approved'
           AND fb.Org_Status = 'Active'
-        ORDER BY fb.Date_Registered DESC
-        LIMIT 6
+        ORDER BY is_favourite DESC, fb.Date_Registered DESC
+        LIMIT 3
     ");
-    $stmtNearby->execute();
+    $stmtNearby->execute([$_SESSION['Account_ID']]);
     $nearbyBanks = $stmtNearby->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
@@ -78,11 +109,77 @@ function formatStatNumber(int $n): string {
 }
 
 // ── 4. Helper: is the bank open right now? ───────────────────
-function getBankStatus(string $timeOpen, string $timeClose): string {
-    $now   = strtotime(date('H:i:s'));
-    $open  = strtotime($timeOpen);
-    $close = strtotime($timeClose);
-    return ($now >= $open && $now <= $close) ? 'Open Now' : 'Closed';
+function dayIndexFromText(string $day): ?int {
+    $key = substr(strtolower(trim($day)), 0, 3);
+    $map = [
+        'mon' => 1,
+        'tue' => 2,
+        'wed' => 3,
+        'thu' => 4,
+        'fri' => 5,
+        'sat' => 6,
+        'sun' => 7,
+    ];
+
+    return $map[$key] ?? null;
+}
+
+function dayIsInRange(int $today, int $start, int $end): bool {
+    if ($start <= $end) {
+        return $today >= $start && $today <= $end;
+    }
+
+    return $today >= $start || $today <= $end;
+}
+
+function isOperatingToday(?string $operatingDays): bool {
+    $days = strtolower(trim((string) $operatingDays));
+
+    if ($days === '') {
+        return false;
+    }
+
+    if (preg_match('/\b(daily|everyday|every day)\b/', $days)) {
+        return true;
+    }
+
+    $today = (int) date('N');
+    $dayPattern = '(mon(?:day)?|tue(?:sday)?|tues(?:day)?|wed(?:nesday)?|thu(?:rsday)?|thur(?:sday)?|thurs(?:day)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)';
+
+    preg_match_all('/' . $dayPattern . '(?:\s*(?:-|to)\s*' . $dayPattern . ')?/i', $days, $matches, PREG_SET_ORDER);
+
+    foreach ($matches as $match) {
+        $start = dayIndexFromText($match[1]);
+        $end = isset($match[2]) && $match[2] !== '' ? dayIndexFromText($match[2]) : $start;
+
+        if ($start !== null && $end !== null && dayIsInRange($today, $start, $end)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function getBankStatus(?string $timeOpen, ?string $timeClose, ?string $operatingDays = null): string {
+    if (!isOperatingToday($operatingDays)) {
+        return 'Closed';
+    }
+
+    if (!$timeOpen || !$timeClose) {
+        return 'Closed';
+    }
+
+    $now = strtotime(date('H:i:s'));
+    return ($now >= strtotime($timeOpen) && $now <= strtotime($timeClose)) ? 'Open Now' : 'Closed';
+}
+
+function shortenAddress(?string $address, int $limit = 78): string {
+    $address = trim((string) $address);
+    if (strlen($address) <= $limit) {
+        return $address;
+    }
+
+    return rtrim(substr($address, 0, $limit - 3), " ,.") . '...';
 }
 ?>
 
@@ -121,7 +218,7 @@ function getBankStatus(string $timeOpen, string $timeClose): string {
         <h3 class="section-title">Nearby Food Banks</h3>
         <p class="section-subtitle">Supporting your community</p>
     </div>
-    <a href="#" class="view-all-link"
+    <a href="#" class="view-all-link nav-link"
        data-target="/foodbank/frontend/views/individual/pa_all_foodbanks.php">
         View All
     </a>
@@ -137,7 +234,7 @@ function getBankStatus(string $timeOpen, string $timeClose): string {
 
     <?php else: ?>
         <?php foreach ($nearbyBanks as $bank):
-            $status     = getBankStatus($bank['Time_Open'], $bank['Time_Close']);
+            $status     = getBankStatus($bank['Time_Open'], $bank['Time_Close'], $bank['Operating_Days']);
             $isOpen     = $status === 'Open Now';
             $isFav      = (bool) $bank['is_favourite'];
             $timeOpen   = date('g:i A', strtotime($bank['Time_Open']));
@@ -163,9 +260,9 @@ function getBankStatus(string $timeOpen, string $timeClose): string {
                 <span class="status-badge <?php echo $isOpen ? 'status-badge--open' : 'status-badge--closed'; ?>">
                     <?php echo $status; ?>
                 </span>
-                <span class="distance">
+                <span class="distance" title="<?php echo htmlspecialchars($bank['Physical_Address']); ?>">
                     <i class="fas fa-location-dot"></i>
-                    <?php echo htmlspecialchars($bank['Physical_Address']); ?>
+                    <span><?php echo htmlspecialchars(shortenAddress($bank['Physical_Address'])); ?></span>
                 </span>
             </div>
 
@@ -182,7 +279,7 @@ function getBankStatus(string $timeOpen, string $timeClose): string {
 
             <button
                 class="view-details-btn nav-link"
-                data-target="/foodbank/frontend/views/individual/pa_foodbank_details.php?id=<?php echo (int)$bank['FoodBank_ID']; ?>">
+                data-target="/foodbank/frontend/views/individual/sections/fb_map.php?id=<?php echo (int)$bank['FoodBank_ID']; ?>">
                 View Details
             </button>
 

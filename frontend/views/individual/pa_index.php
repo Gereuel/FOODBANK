@@ -1,4 +1,5 @@
 <?php
+// pa_index.php
 session_start();
 
 require_once '../../../backend/config/database.php';
@@ -31,8 +32,6 @@ try {
     $lastName  = $donor['Last_Name'];
     $email     = $donor['Email'];
 
-    // Default banner image — pages can override $headerBannerImage before
-    // including indi_header.php if they want a different photo
     $headerBannerImage = '/foodbank/frontend/assets/images/header-banner.png';
 
 } catch (PDOException $e) {
@@ -52,35 +51,55 @@ try {
     <link rel="stylesheet" href="../../assets/css/global/_layout.css">
     <link rel="stylesheet" href="../../assets/css/global/_typography.css">
 
+    <!-- Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap">
+    
+    <!-- Map Library-->
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" />
 
     <!-- Component CSS -->
     <link rel="stylesheet" href="../../assets/css/components/individual/indi_navigation.css">
     <link rel="stylesheet" href="../../assets/css/components/individual/indi_header.css">
 
     <!-- Page CSS (home page) -->
-    <link rel="stylesheet" href="../../assets/css/pages/individual/pa_foodbanks.css">
+    <link rel="stylesheet" href="../../assets/css/pages/individual/pa_foodbanks.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../../assets/css/pages/individual/pa_donors.css">
+    <link rel="stylesheet" href="../../assets/css/pages/individual/pa_donations.css">
+    <link rel="stylesheet" href="../../assets/css/pages/individual/pa_messages.css">
+    <link rel="stylesheet" href="../../assets/css/pages/individual/pa_settings.css?v=<?php echo time(); ?>">
 
-    <link rel="icon" href="../../../favicon.ico">
+    <!-- Icon -->
+    <link rel="icon" type="image/png" href="/foodbank/frontend/assets/images/logo.png">
 
     <style>
-        /* Layout: sidebar + main side-by-side, full viewport height */
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
         .app-container {
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
             background-color: #f5f3ef;
         }
 
         .main-content {
             flex: 1;
+            min-width: 0;
+            height: 100vh;
             overflow-y: auto;
-            /* NO padding here — header-wrapper handles its own spacing */
+            overflow-x: hidden;
             padding: 0;
             background-color: #f5f3ef;
         }
 
-        /* Everything below the header gets comfortable padding */
+        #pa-page-content {
+            min-width: 0;
+        }
+
         .main-content .stats-row,
         .main-content .section-header,
         .main-content .foodbanks-grid {
@@ -108,6 +127,11 @@ try {
 
     </div>
 
-    <script src="../../assets/js/individual/pa-app.js"></script>
+    <!-- PA Main JS -->
+    <script src="../../assets/js/Individual/pa-app.js"></script>
+
+    <!-- Map JS-->
+    <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
+
 </body>
 </html>

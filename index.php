@@ -1,12 +1,19 @@
+<?php
+session_start();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/auth_redirect.php';
+
+$dashboardUrl = auth_dashboard_path($_SESSION['Account_Type'] ?? null);
+$isLoggedIn = isset($_SESSION['Account_ID']) && $dashboardUrl !== null;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Food Bank App</title>
+    <title>Food Bank App</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" type="text/css" href="frontend/assets/css/pages/index.css?v=1.1">
-    <link rel="icon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="/foodbank/frontend/assets/images/logo.png">
 </head>
 <body>
     <section class="hero">
@@ -45,6 +52,14 @@
         
             <!-- Buttons -->
             <div class="cta-group">
+            <?php if ($isLoggedIn): ?>
+            <a href="<?= htmlspecialchars($dashboardUrl) ?>" class="btn btn--primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M3 13h8V3H3v10zM13 21h8V11h-8v10zM13 3v6h8V3h-8zM3 21h8v-6H3v6z"/>
+                </svg>
+                Dashboard
+            </a>
+            <?php else: ?>
             <a href="login.php" class="btn btn--primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
@@ -57,6 +72,7 @@
                 </svg>
                 Sign Up Free
             </a>
+            <?php endif; ?>
             </div>
         </div>
         

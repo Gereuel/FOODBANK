@@ -9,7 +9,7 @@
             <button class="modal-close" onclick="closeEditFoodBankModal()">&times;</button>
         </div>
         <div class="modal-body">
-            <form action="/foodbank/backend/controllers/admin/foodbanks/process_edit_foodbank.php" method="POST">
+            <form id="editFoodBankForm" action="/foodbank/backend/controllers/admin/foodbanks/process_edit_foodbank.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="foodbank_id" id="efb-id">
 
                 <h3>Organization</h3>
@@ -48,7 +48,20 @@
                     </div>
                 </div>
                 <label>Operating Days</label>
-                <input type="text" name="operating_days" id="efb-days" placeholder="e.g. Mon-Fri" required>
+                <input type="hidden" name="operating_days" id="efb-days" required>
+                <div class="operating-days-picker" data-hidden-target="efb-days">
+                    <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Mon"> Mon</label>
+                    <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Tue"> Tue</label>
+                    <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Wed"> Wed</label>
+                    <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Thu"> Thu</label>
+                    <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Fri"> Fri</label>
+                    <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Sat"> Sat</label>
+                    <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Sun"> Sun</label>
+                </div>
+                <p class="field-hint">Select every day this food bank is open.</p>
+                <label>Map Screenshot (Optional)</label>
+                <input type="file" name="map_image" id="efb-map-image" accept="image/png,image/jpeg,image/webp">
+                <p class="field-hint">Upload a new screenshot only if you want to replace the current map image.</p>
 
                 <h3>Public Contact</h3>
                 <input type="email" name="public_email" id="efb-public-email" placeholder="Public Email (Optional)">

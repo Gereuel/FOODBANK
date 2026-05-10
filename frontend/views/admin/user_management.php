@@ -14,11 +14,39 @@ $per_page = 10;
 $offset = ($page - 1) * $per_page;
 
 try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS ACCOUNT_DELETION_REQUESTS (
+            Request_ID INT AUTO_INCREMENT PRIMARY KEY,
+            Account_ID INT NOT NULL,
+            User_ID INT DEFAULT NULL,
+            Reason TEXT DEFAULT NULL,
+            Status ENUM('Pending', 'Approved', 'Rejected') NOT NULL DEFAULT 'Pending',
+            Requested_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            Reviewed_At DATETIME DEFAULT NULL,
+            Reviewed_By INT DEFAULT NULL,
+            INDEX idx_deletion_request_account (Account_ID),
+            INDEX idx_deletion_request_status (Status),
+            CONSTRAINT fk_delete_request_account
+                FOREIGN KEY (Account_ID) REFERENCES ACCOUNTS(Account_ID)
+                ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_delete_request_user
+                FOREIGN KEY (User_ID) REFERENCES USERS(User_ID)
+                ON DELETE SET NULL ON UPDATE CASCADE
+        )
+    ");
+
     // Get total count of users
     $stmt_count = $pdo->prepare("SELECT COUNT(*) as count FROM ACCOUNTS");
     $stmt_count->execute();
     $total_users = $stmt_count->fetch()['count'];
     $total_pages = ceil($total_users / $per_page);
+
+    $stmt_delete_requests = $pdo->query("
+        SELECT COUNT(*)
+        FROM ACCOUNT_DELETION_REQUESTS
+        WHERE Status = 'Pending'
+    ");
+    $pending_delete_requests = (int) $stmt_delete_requests->fetchColumn();
     
     // Fetch users with their account info
     $stmt = $pdo->prepare("
@@ -47,10 +75,16 @@ try {
             -- Food bank fields for FA accounts
             fb.Organization_Name,
             fb.FoodBank_ID,
-            fb.Physical_Address AS FB_Address
+            fb.Physical_Address AS FB_Address,
+            dr.Request_ID AS Deletion_Request_ID,
+            dr.Status AS Deletion_Request_Status,
+            dr.Requested_At AS Deletion_Requested_At
         FROM ACCOUNTS a
         LEFT JOIN USERS u ON a.User_ID = u.User_ID
         LEFT JOIN FOOD_BANKS fb ON a.Account_ID = fb.Account_ID
+        LEFT JOIN ACCOUNT_DELETION_REQUESTS dr
+          ON dr.Account_ID = a.Account_ID
+         AND dr.Status = 'Pending'
         ORDER BY a.Date_Created DESC
         LIMIT ? OFFSET ?
     ");
@@ -81,6 +115,9 @@ try {
         <?php
         $messages = [
             'user_updated' => 'User has been updated successfully.',
+            'user_deleted' => 'User has been deleted successfully.',
+            'deletion_request_approved' => 'Deletion request has been approved and the account was deleted.',
+            'deletion_request_rejected' => 'Deletion request has been rejected.',
         ];
         echo $messages[$_GET['success']] ?? 'Action completed successfully.';
         ?>
@@ -97,7 +134,6 @@ try {
             'invalid_birthdate'    => 'Please enter a valid birthdate.',
             'email_taken'          => 'That email address is already in use.',
             'db_error'             => 'A database error occurred. Please try again.',
-            'user_deleted'         => 'User has been deleted successfully.',
             'cannot_delete_self'   => 'You cannot delete your own account.',
         ];
         echo $messages[$_GET['error']] ?? 'An unexpected error occurred.';
@@ -129,6 +165,10 @@ try {
         <div class="stat-card">
             <div class="label">Total Food Bank</div>
             <div class="value"><?= $total_foodbank ?></div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Deletion Requests</div>
+            <div class="value red"><?= $pending_delete_requests ?></div>
         </div>
     </div>
 
@@ -264,8 +304,12 @@ try {
                         <td><?= htmlspecialchars($role_display) ?></td>
                         <td><?= htmlspecialchars(substr($location, 0, 40) . (strlen($location) > 40 ? '...' : '')) ?></td>
                         <td>
-                            <span class="badge <?= $user['Status'] === 'Active' ? 'badge-active' : 'badge-inactive' ?>">
-                                <?= $user['Status'] === 'Disabled' ? 'Disabled' : htmlspecialchars($user['Status']) ?>
+                            <span class="badge <?= $user['Deletion_Request_Status'] === 'Pending' ? 'badge-pending' : ($user['Status'] === 'Active' ? 'badge-active' : 'badge-inactive') ?>">
+                                <?php if ($user['Deletion_Request_Status'] === 'Pending'): ?>
+                                    Deletion Requested
+                                <?php else: ?>
+                                    <?= $user['Status'] === 'Disabled' ? 'Disabled' : htmlspecialchars($user['Status']) ?>
+                                <?php endif; ?>
                             </span>
                         </td>
                     <td><?= htmlspecialchars($user['Custom_App_ID']) ?></td>
@@ -345,12 +389,12 @@ try {
 <?php require_once 'modals/delete-user-modal.php'; ?>
 <?php require_once 'modals/security-user-modal.php'; ?>
 
-<script src="/foodbank/frontend/assets/js/users-overview.js"></script>
+<script src="/foodbank/frontend/assets/js/users-overview.js?v=<?= time() ?>"></script>
 
 <!-- Modal Scripts -->
-<script src="/foodbank/frontend/assets/js/modals/add-user-modal.js"></script>
-<script src="/foodbank/frontend/assets/js/modals/edit-user-modal.js"></script>
-<script src="/foodbank/frontend/assets/js/modals/view-user-modal.js"></script>
-<script src="/foodbank/frontend/assets/js/modals/delete-user-modal.js"></script>
-<script src="/foodbank/frontend/assets/js/modals/security-user-modal.js"></script>
-<script src="/foodbank/frontend/assets/js/modals/toolbar.js"></script>
+<script src="/foodbank/frontend/assets/js/modals/add-user-modal.js?v=<?= time() ?>"></script>
+<script src="/foodbank/frontend/assets/js/modals/edit-user-modal.js?v=<?= time() ?>"></script>
+<script src="/foodbank/frontend/assets/js/modals/view-user-modal.js?v=<?= time() ?>"></script>
+<script src="/foodbank/frontend/assets/js/modals/delete-user-modal.js?v=<?= time() ?>"></script>
+<script src="/foodbank/frontend/assets/js/modals/security-user-modal.js?v=<?= time() ?>"></script>
+<script src="/foodbank/frontend/assets/js/modals/toolbar.js?v=<?= time() ?>"></script>

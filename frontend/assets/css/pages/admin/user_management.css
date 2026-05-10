@@ -67,7 +67,7 @@
 
 .stat-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-3xl);
 }
@@ -102,6 +102,10 @@
 
 .stat-card .value.green {
     color: var(--green-main);
+}
+
+.stat-card .value.red {
+    color: var(--red-main);
 }
 
 
@@ -701,6 +705,57 @@
     margin: var(--spacing-md) 0 var(--spacing-sm);
 }
 
+.form-step {
+    padding-top: 4px;
+}
+
+.form-step > input,
+.form-step > select,
+.form-step > textarea,
+.form-step > .form-row,
+.form-step > label,
+.form-step > .operating-days-picker,
+.form-step > .step-desc {
+    margin-top: 12px;
+}
+
+.form-step > h3:first-child {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.form-step > label + input,
+.form-step > label + select,
+.form-step > label + textarea,
+.form-step > label + .operating-days-picker {
+    margin-top: 6px;
+}
+
+#addFoodBankModal .form-step > input:not([type="hidden"]),
+#addFoodBankModal .form-step > select,
+#addFoodBankModal .form-step > textarea,
+#editFoodBankModal .form-step > input:not([type="hidden"]),
+#editFoodBankModal .form-step > select,
+#editFoodBankModal .form-step > textarea {
+    display: block;
+    margin-top: 0 !important;
+    margin-bottom: 14px !important;
+}
+
+#addFoodBankModal .form-step > input:not([type="hidden"]):last-child,
+#addFoodBankModal .form-step > select:last-child,
+#addFoodBankModal .form-step > textarea:last-child,
+#editFoodBankModal .form-step > input:not([type="hidden"]):last-child,
+#editFoodBankModal .form-step > select:last-child,
+#editFoodBankModal .form-step > textarea:last-child {
+    margin-bottom: 0 !important;
+}
+
+#addFoodBankModal .form-step > .form-row,
+#editFoodBankModal .form-step > .form-row {
+    margin-bottom: 14px !important;
+}
+
 .modal-body label {
     display: block;
     font-size: var(--font-size-base);
@@ -748,10 +803,53 @@
     min-width: 0; /* prevents flex children from overflowing */
 }
 
+.operating-days-picker {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.modal-body .day-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 42px;
+    margin: 0;
+    padding: 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+}
+
+.modal-body .day-option:has(input:checked) {
+    border-color: #3a8c3f;
+    background: #e8f5e9;
+    color: #2f7d2d;
+}
+
+.modal-body .day-option input {
+    width: auto;
+    margin: 0;
+    accent-color: #3a8c3f;
+}
+
+.field-hint {
+    margin: 8px 0 0;
+    color: #6b7280;
+    font-size: 12px;
+}
+
 .modal-footer {
     display: flex;
     gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
     padding-top: var(--spacing-lg);
     border-top: 1px solid var(--border-light);
     background: var(--white);
@@ -772,6 +870,15 @@
 .modal-footer button[type="submit"] {
     background-color: var(--green-dark);
     color: var(--white);
+}
+
+.modal-footer button.btn-secondary {
+    background-color: var(--gray-200);
+    color: var(--text-main);
+}
+
+.modal-footer button.btn-secondary:hover {
+    background-color: var(--gray-300);
 }
 
 .modal-footer button[type="submit"]:hover {
@@ -1446,6 +1553,10 @@
     .report-status-bar {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .operating-days-picker {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .modal-footer {

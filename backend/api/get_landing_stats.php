@@ -30,7 +30,7 @@ try {
 
     echo json_encode([
         [
-            'value' => $donorStat['value'] + 250, //Added Value for showing
+            'value' => $donorStat['value'], //Added Value for showing
             'suffix' => $donorStat['suffix'],
             'label' => 'Active Donors'
         ],
@@ -40,7 +40,7 @@ try {
             'label' => 'Registered Food Banks'
         ],
         [
-            'value' => $donationStat['value'] + 8500, //Added Value for showing
+            'value' => $donationStat['value'], //Added Value for showing
             'suffix' => $donationStat['suffix'],
             'label' => 'Total Donations'
         ]

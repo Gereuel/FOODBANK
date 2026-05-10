@@ -137,7 +137,7 @@
     align-items: center;
     gap: 14px;
     padding: 12px 16px;
-    color: #686868;
+    color: black;
     border-radius: 10px;
     font-family: 'DM Sans', sans-serif;
     font-size: 14px;
@@ -152,7 +152,7 @@
     width: 20px;
     text-align: center;
     flex-shrink: 0;
-    color: #cccccc;
+    color: gray;
     transition: color 0.18s ease;
 }
 
@@ -198,7 +198,7 @@
     align-items: center;
     gap: 14px;
     padding: 12px 16px;
-    color: #aaaaaa;
+    color: black;
     border-radius: 10px;
     text-decoration: none;
     font-family: 'DM Sans', sans-serif;
@@ -211,7 +211,7 @@
     font-size: 16px;
     width: 20px;
     text-align: center;
-    color: #cccccc;
+    color: gray;
     transition: color 0.18s ease;
 }
 

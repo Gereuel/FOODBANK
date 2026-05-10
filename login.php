@@ -1,5 +1,10 @@
 <?php
+session_start();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/auth_redirect.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
+
+send_no_store_headers();
+redirect_authenticated_user_to_dashboard();
 ?>
 
 <!DOCTYPE html>
@@ -10,7 +15,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php'
     <title>Login - Food Bank App</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Commissioner:wght@400;500;600&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="frontend/assets/css/pages/login.css">
-    <link rel="icon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="/foodbank/frontend/assets/images/logo.png">
 </head>
 
 <body>

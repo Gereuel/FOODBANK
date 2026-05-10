@@ -105,7 +105,20 @@
                         </div>
                     </div>
                     <label>Operating Days</label>
-                    <input type="text" name="operating_days" placeholder="e.g. Mon-Fri, Monday to Saturday" required>
+                    <input type="hidden" name="operating_days" id="afb-operating-days" required>
+                    <div class="operating-days-picker" data-hidden-target="afb-operating-days">
+                        <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Mon"> Mon</label>
+                        <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Tue"> Tue</label>
+                        <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Wed"> Wed</label>
+                        <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Thu"> Thu</label>
+                        <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Fri"> Fri</label>
+                        <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Sat"> Sat</label>
+                        <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="Sun"> Sun</label>
+                    </div>
+                    <p class="field-hint">Select every day this food bank is open.</p>
+                    <label>Map Screenshot (Optional)</label>
+                    <input type="file" name="map_image" accept="image/png,image/jpeg,image/webp">
+                    <p class="field-hint">Upload a screenshot of the food bank location map.</p>
                 </div>
 
                 <!-- Navigation Buttons -->

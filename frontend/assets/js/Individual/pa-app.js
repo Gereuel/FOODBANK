@@ -1,25 +1,28 @@
 /**
  * pa-app.js
- * SPA Navigation Logic for the Personal Account (Individual) Dashboard
+ * SPA navigation logic for the Personal Account dashboard.
  */
 
-// 1. Core Function: Load Page Fragments
 function loadPaComponent(containerId, filePath, callback = null) {
-    // Show a small loader if necessary, then fetch
     fetch(filePath)
         .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok: ' + filePath);
+            if (!response.ok) {
+                throw new Error(`Unable to load ${filePath}`);
+            }
+
             return response.text();
         })
         .then(data => {
             const container = document.getElementById(containerId);
             if (!container) return;
 
-            // Inject the HTML content
+            const headerWrapper = document.querySelector('.header-wrapper');
+            if (headerWrapper) {
+                headerWrapper.style.display = '';
+            }
+
             container.innerHTML = data;
-            
-            // Manually execute scripts found in the injected HTML to ensure 
-            // page-specific logic (like chat or maps) actually runs.
+
             const scripts = container.querySelectorAll('script');
             scripts.forEach(oldScript => {
                 const newScript = document.createElement('script');
@@ -28,54 +31,94 @@ function loadPaComponent(containerId, filePath, callback = null) {
                 oldScript.parentNode.replaceChild(newScript, oldScript);
             });
 
+            setTimeout(() => {
+                if (typeof initMap === 'function') {
+                    initMap();
+
+                    if (typeof map !== 'undefined') {
+                        map.resize();
+                    }
+                }
+            }, 150);
+
             if (callback) callback();
-            
-            // Optional: Scroll to top on navigation
             window.scrollTo(0, 0);
         })
-        .catch(error => console.error(`SPA Load Error:`, error));
+        .catch(error => {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-circle-exclamation"></i><p>Unable to load this section.</p></div>';
+            }
+            console.error(error);
+        });
 }
 
-// 2. Global Event Listeners for Navigation
 document.addEventListener('click', function(e) {
-    // Look for links in your sidebar nav (handles both 'nav-item' and button styles)
-    const navLink = e.target.closest('.nav-list a, .navigation-buttons a');
-    
-    if (navLink) {
-        const targetUrl = navLink.getAttribute('href');
-        
-        // Filter: only handle internal PHP files, ignore external links or stubs
-        if (targetUrl && targetUrl !== '#' && !targetUrl.startsWith('http')) {
-            e.preventDefault();
-            
-            // Use 'pa-main-content' as the target ID (ensure this exists in pa_index.php)
-            loadPaComponent('pa-main-content', targetUrl);
+    const favoriteBtn = e.target.closest('.fav-btn');
+    if (favoriteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
 
-            // --- UI Cleanup: Update Active States ---
-            
-            // Remove active from all possible sidebar items
-            document.querySelectorAll('.nav-item, .navigation-buttons button').forEach(el => {
-                el.classList.remove('active');
+        const foodBankId = favoriteBtn.dataset.id;
+        if (!foodBankId || favoriteBtn.dataset.loading === 'true') return;
+
+        favoriteBtn.dataset.loading = 'true';
+        const formData = new FormData();
+        formData.append('foodbank_id', foodBankId);
+
+        fetch('/foodbank/backend/controllers/individual/foodbanks/toggle_favorite.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) throw new Error(data.message || 'Unable to update favorite.');
+
+                document.querySelectorAll(`.fav-btn[data-id="${foodBankId}"]`).forEach(button => {
+                    button.classList.toggle('fav-btn--active', data.favorited);
+                    button.setAttribute('aria-label', data.favorited ? 'Remove saved food bank' : 'Save food bank');
+
+                    const icon = button.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('fas', data.favorited);
+                        icon.classList.toggle('far', !data.favorited);
+                    }
+                });
+            })
+            .catch(error => alert(error.message))
+            .finally(() => {
+                favoriteBtn.dataset.loading = 'false';
             });
+        return;
+    }
 
-            // Apply active to the clicked item
-            if (navLink.classList.contains('nav-item')) {
-                navLink.classList.add('active');
-            } else {
-                const btn = navLink.querySelector('button');
-                if (btn) btn.classList.add('active');
-            }
-        }
+    const navLink = e.target.closest('.nav-list a, .navigation-buttons a, .nav-link, .view-all-link');
+
+    if (!navLink) return;
+
+    let targetUrl = navLink.getAttribute('href');
+    if (!targetUrl || targetUrl === '#') {
+        targetUrl = navLink.dataset.target;
+    }
+
+    if (!targetUrl || targetUrl === '#' || targetUrl.startsWith('http')) {
+        return;
+    }
+
+    e.preventDefault();
+    loadPaComponent('pa-page-content', targetUrl);
+
+    document.querySelectorAll('.nav-list li').forEach(el => el.classList.remove('active'));
+    const navListItem = navLink.closest('.nav-list li');
+    if (navListItem) {
+        navListItem.classList.add('active');
     }
 });
 
-// 3. Dashboard Initialization
 document.addEventListener('DOMContentLoaded', () => {
-    const mainDisplay = document.getElementById('pa-main-content');
-    
-    // If the shell is empty on load, pull in the default home page
-    if (mainDisplay && mainDisplay.innerHTML.trim() === '') {
-        console.log('SPA: Initializing default Individual Dashboard view...');
-        loadPaComponent('pa-main-content', 'pa_home_page.php');
+    const pageContent = document.getElementById('pa-page-content');
+
+    if (pageContent && pageContent.innerHTML.trim() === '') {
+        loadPaComponent('pa-page-content', '/foodbank/frontend/views/individual/pa_foodbanks.php');
     }
 });
