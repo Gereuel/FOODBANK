@@ -9,7 +9,6 @@ if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'FA
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/messages_schema.php';
 
 function fb_home_date(?string $date): string
 {
@@ -17,8 +16,6 @@ function fb_home_date(?string $date): string
 }
 
 try {
-    ensure_messages_table($pdo);
-
     $stmtBank = $pdo->prepare("SELECT * FROM FOOD_BANKS WHERE Account_ID = ? LIMIT 1");
     $stmtBank->execute([$_SESSION['Account_ID']]);
     $bank = $stmtBank->fetch(PDO::FETCH_ASSOC);
@@ -107,7 +104,7 @@ try {
                         <article>
                             <strong><?= htmlspecialchars($donation['Item_Type']) ?></strong>
                             <span><?= htmlspecialchars(trim(($donation['First_Name'] ?? '') . ' ' . ($donation['Last_Name'] ?? ''))) ?></span>
-                            <small><?= htmlspecialchars($donation['Status']) ?> · <?= htmlspecialchars(fb_home_date($donation['Date_Donated'])) ?></small>
+                            <small><?= htmlspecialchars($donation['Status']) ?> - <?= htmlspecialchars(fb_home_date($donation['Date_Donated'])) ?></small>
                         </article>
                     <?php endforeach; ?>
                 </div>

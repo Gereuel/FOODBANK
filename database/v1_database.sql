@@ -62,6 +62,7 @@ CREATE TABLE FOOD_BANKS (
     Manager_Email VARCHAR(100),
     Manager_Phone VARCHAR(20),
     Manager_Address TEXT,
+    Manager_Profile_Picture_URL VARCHAR(255),
 
     FOREIGN KEY (Account_ID)
         REFERENCES ACCOUNTS(Account_ID)

@@ -2,6 +2,7 @@
 session_start();
 
 require_once '../../../backend/config/database.php';
+require_once '../../../backend/helpers/schema_columns.php';
 
 if (!isset($_SESSION['Account_ID'])) {
     header('Location: ../../../login.php');
@@ -14,13 +15,9 @@ if (($_SESSION['Account_Type'] ?? '') !== 'FA') {
 }
 
 try {
-    try {
-        $pdo->exec("ALTER TABLE FOOD_BANKS ADD COLUMN Manager_Profile_Picture_URL VARCHAR(255) DEFAULT NULL");
-    } catch (PDOException $e) {
-        if (($e->errorInfo[1] ?? null) !== 1060) {
-            throw $e;
-        }
-    }
+    $managerAvatarSelect = db_column_exists($pdo, 'FOOD_BANKS', 'Manager_Profile_Picture_URL')
+        ? 'fb.Manager_Profile_Picture_URL'
+        : 'NULL AS Manager_Profile_Picture_URL';
 
     $stmt = $pdo->prepare("
         SELECT
@@ -43,7 +40,7 @@ try {
             fb.Org_Status,
             fb.Manager_First_Name,
             fb.Manager_Last_Name,
-            fb.Manager_Profile_Picture_URL,
+            {$managerAvatarSelect},
             fb.Date_Registered
         FROM ACCOUNTS a
         LEFT JOIN USERS u ON u.User_ID = a.User_ID

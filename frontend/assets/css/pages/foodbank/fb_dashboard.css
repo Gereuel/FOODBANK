@@ -369,7 +369,8 @@ body {
     gap: 14px;
 }
 
-.fb-form label.is-full {
+.fb-form label.is-full,
+.fb-form .fb-field.is-full {
     gap: 8px;
 }
 
@@ -413,12 +414,14 @@ body {
     accent-color: #3a8c3f;
 }
 
-.fb-form label {
+.fb-form label,
+.fb-form .fb-field {
     display: grid;
     gap: 6px;
 }
 
-.fb-form label span {
+.fb-form label span,
+.fb-form .fb-field > span {
     color: #666666;
     font-size: 12px;
     font-weight: 700;

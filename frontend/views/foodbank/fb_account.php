@@ -11,14 +11,6 @@ if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'FA
 require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
 
 try {
-    try {
-        $pdo->exec("ALTER TABLE FOOD_BANKS ADD COLUMN Manager_Profile_Picture_URL VARCHAR(255) DEFAULT NULL");
-    } catch (PDOException $e) {
-        if (($e->errorInfo[1] ?? null) !== 1060) {
-            throw $e;
-        }
-    }
-
     $stmt = $pdo->prepare("
         SELECT
             u.*,
@@ -88,14 +80,14 @@ $operatingDaysValue = (string) ($account['Operating_Days'] ?? '');
                     <label><span>Organization Name</span><input type="text" name="organization_name" value="<?= htmlspecialchars($account['Organization_Name'] ?? '') ?>" required></label>
                     <label><span>Public Email</span><input type="email" name="public_email" value="<?= htmlspecialchars($account['Public_Email'] ?? '') ?>"></label>
                     <label><span>Public Phone</span><input type="text" name="public_phone" value="<?= htmlspecialchars($account['Public_Phone'] ?? '') ?>"></label>
-                    <label class="is-full"><span>Operating Days</span>
+                    <div class="fb-field is-full"><span>Operating Days</span>
                         <input type="hidden" name="operating_days" id="fb-operating-days" value="<?= htmlspecialchars($operatingDaysValue) ?>" required>
                         <div class="fb-operating-days-picker operating-days-picker" data-hidden-target="fb-operating-days">
                             <?php foreach ($dayOrder as $day): ?>
                                 <label class="day-option"><input type="checkbox" name="operating_day_values[]" value="<?= $day ?>"> <?= $day ?></label>
                             <?php endforeach; ?>
                         </div>
-                    </label>
+                    </div>
                     <label><span>Time Open</span><input type="time" name="time_open" value="<?= htmlspecialchars(substr((string) ($account['Time_Open'] ?? ''), 0, 5)) ?>" required></label>
                     <label><span>Time Close</span><input type="time" name="time_close" value="<?= htmlspecialchars(substr((string) ($account['Time_Close'] ?? ''), 0, 5)) ?>" required></label>
                     <label><span>Manager First Name</span><input type="text" name="first_name" value="<?= htmlspecialchars($account['First_Name'] ?? ($account['Manager_First_Name'] ?? '')) ?>" required></label>
@@ -133,6 +125,7 @@ $operatingDaysValue = (string) ($account['Operating_Days'] ?? '');
 
         form.addEventListener('submit', event => {
             event.preventDefault();
+            if (formId === 'fb-profile-form') syncDaysPicker();
             status.textContent = 'Saving...';
             status.classList.remove('is-error');
 

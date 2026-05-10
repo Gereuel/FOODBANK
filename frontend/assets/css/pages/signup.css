@@ -83,6 +83,10 @@ body {
     padding: 60px 60px 40px;
     overflow-y: auto;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 /* PROGRESS INDICATOR */
@@ -91,6 +95,8 @@ body {
     justify-content: center;
     gap: 12px;
     margin-bottom: 28px;
+    width: 100%;
+    max-width: 500px;
 }
 
 .progress span {
@@ -124,6 +130,11 @@ body {
 /* FORM STEPS */
 .step { display: none; }
 .step.active { display: block; }
+
+#signupForm {
+    width: 100%;
+    max-width: 500px;
+}
 
 label {
     display: block;

@@ -1,7 +1,13 @@
 <?php
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/schema_columns.php';
+
 function get_message_contact(PDO $pdo, int $accountId): ?array
 {
+    $managerAvatarSelect = db_column_exists($pdo, 'FOOD_BANKS', 'Manager_Profile_Picture_URL')
+        ? 'fb.Manager_Profile_Picture_URL'
+        : 'NULL AS Manager_Profile_Picture_URL';
+
     $stmt = $pdo->prepare("
         SELECT
             a.Account_ID,
@@ -18,7 +24,8 @@ function get_message_contact(PDO $pdo, int $accountId): ?array
             fb.Physical_Address,
             fb.Public_Email,
             fb.Public_Phone,
-            fb.Custom_FoodBank_ID
+            fb.Custom_FoodBank_ID,
+            {$managerAvatarSelect}
         FROM ACCOUNTS a
         LEFT JOIN USERS u ON u.User_ID = a.User_ID
         LEFT JOIN FOOD_BANKS fb ON fb.Account_ID = a.Account_ID
@@ -57,7 +64,9 @@ function format_message_contact(array $row): array
     $address = $isFoodBank
         ? ($row['Physical_Address'] ?? '')
         : ($row['Address'] ?? '');
-    $avatarUrl = $row['Profile_Picture_URL'] ?: profile_picture_data_uri($row['Profile_Picture'] ?? null);
+    $avatarUrl = $isFoodBank
+        ? (($row['Manager_Profile_Picture_URL'] ?? '') ?: (($row['Profile_Picture_URL'] ?? '') ?: profile_picture_data_uri($row['Profile_Picture'] ?? null)))
+        : (($row['Profile_Picture_URL'] ?? '') ?: profile_picture_data_uri($row['Profile_Picture'] ?? null));
 
     return [
         'account_id' => (int) $row['Account_ID'],

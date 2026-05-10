@@ -23,6 +23,7 @@ try {
         JOIN ACCOUNTS a ON a.Account_ID = d.Donor_Account_ID
         JOIN USERS u ON u.User_ID = a.User_ID
         WHERE fb.Account_ID = ?
+          AND d.Status = 'Received'
         ORDER BY d.Date_Donated DESC, d.Donation_ID DESC
     ");
     $stmt->execute([$_SESSION['Account_ID']]);

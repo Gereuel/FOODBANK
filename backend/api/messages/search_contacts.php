@@ -3,7 +3,6 @@ session_start();
 header('Content-Type: application/json');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/messages_schema.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/messages_contacts.php';
 
 if (!isset($_SESSION['Account_ID'])) {
@@ -11,8 +10,6 @@ if (!isset($_SESSION['Account_ID'])) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();
 }
-
-ensure_messages_table($pdo);
 
 $currentAccountId = (int) $_SESSION['Account_ID'];
 $query = trim($_GET['q'] ?? '');
@@ -23,6 +20,9 @@ if (strlen($query) < 2) {
 }
 
 $term = '%' . $query . '%';
+$managerAvatarSelect = db_column_exists($pdo, 'FOOD_BANKS', 'Manager_Profile_Picture_URL')
+    ? 'fb.Manager_Profile_Picture_URL'
+    : 'NULL AS Manager_Profile_Picture_URL';
 
 $stmt = $pdo->prepare("
     SELECT
@@ -40,7 +40,8 @@ $stmt = $pdo->prepare("
         fb.Physical_Address,
         fb.Public_Email,
         fb.Public_Phone,
-        fb.Custom_FoodBank_ID
+        fb.Custom_FoodBank_ID,
+        {$managerAvatarSelect}
     FROM ACCOUNTS a
     LEFT JOIN USERS u ON u.User_ID = a.User_ID
     LEFT JOIN FOOD_BANKS fb ON fb.Account_ID = a.Account_ID

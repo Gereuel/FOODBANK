@@ -76,6 +76,14 @@ try {
         exit();
     }
 
+    $stmt = $pdo->prepare("SELECT FoodBank_ID FROM FOOD_BANKS WHERE Org_Email = ? AND Account_ID != ? LIMIT 1");
+    $stmt->execute([$email, $_SESSION['Account_ID']]);
+    if ($stmt->fetch()) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => 'Login email is already used by another food bank.']);
+        exit();
+    }
+
     $pdo->beginTransaction();
 
     $stmt = $pdo->prepare("

@@ -3,7 +3,6 @@ session_start();
 header('Content-Type: application/json');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/config/database.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/messages_schema.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/foodbank/backend/helpers/messages_contacts.php';
 
 if (!isset($_SESSION['Account_ID'])) {
@@ -11,8 +10,6 @@ if (!isset($_SESSION['Account_ID'])) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();
 }
-
-ensure_messages_table($pdo);
 
 $currentAccountId = (int) $_SESSION['Account_ID'];
 

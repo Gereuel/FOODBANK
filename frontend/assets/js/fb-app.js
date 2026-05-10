@@ -1,4 +1,10 @@
 function loadFbComponent(containerId, filePath, callback = null) {
+    if (window.fbMessagesEscapeHandler) {
+        document.removeEventListener('keydown', window.fbMessagesEscapeHandler);
+        window.fbMessagesEscapeHandler = null;
+    }
+    document.body.classList.remove('pa-chat-open');
+
     fetch(filePath)
         .then(response => {
             if (!response.ok) {
@@ -38,7 +44,7 @@ function loadFbComponent(containerId, filePath, callback = null) {
 }
 
 document.addEventListener('click', event => {
-    const navLink = event.target.closest('.nav-link');
+    const navLink = event.target.closest('.fb-sidebar .nav-link');
     if (!navLink) return;
 
     let targetUrl = navLink.getAttribute('href');
@@ -46,7 +52,7 @@ document.addEventListener('click', event => {
         targetUrl = navLink.dataset.target;
     }
 
-    if (!targetUrl || targetUrl === '#' || targetUrl.startsWith('http')) {
+    if (!targetUrl || targetUrl === '#' || /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(targetUrl)) {
         return;
     }
 

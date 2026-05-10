@@ -201,9 +201,13 @@ if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'FA
         event.preventDefault();
         sendMessage(chatInput.value);
     });
-    document.addEventListener('keydown', event => {
+    if (window.fbMessagesEscapeHandler) {
+        document.removeEventListener('keydown', window.fbMessagesEscapeHandler);
+    }
+    window.fbMessagesEscapeHandler = event => {
         if (event.key === 'Escape') closeChat();
-    });
+    };
+    document.addEventListener('keydown', window.fbMessagesEscapeHandler);
     loadConversations();
 })();
 </script>
