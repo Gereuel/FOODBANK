@@ -17,6 +17,8 @@ function initToolbar() {
         const exportCsvBtn = toolbar.querySelector('#export-csv-btn');
         const exportPdfBtn = toolbar.querySelector('#export-pdf-btn');
         const showAllBtn = toolbar.querySelector('#show-all-btn');
+        const serverFilterUrl = toolbar.dataset.serverFilterUrl || '';
+        let searchTimer = null;
 
         if (!tableBody && !filterBtn && !exportBtn) return;
 
@@ -29,11 +31,28 @@ function initToolbar() {
         };
 
         const pageMode = detectToolbarMode(toolbar, tableBody);
-        const activeFilters = { search: '', verification: [], orgStatuses: [], roles: [], statuses: [] };
+        const activeFilters = { search: '', verification: [], orgStatuses: [], roles: [], statuses: [], itemTypes: [] };
+        activeFilters.roles = checkedValues(toolbar, 'role');
+        activeFilters.statuses = checkedValues(toolbar, 'status').map(value => value.toLowerCase());
+        activeFilters.verification = checkedValues(toolbar, 'verification');
+        activeFilters.orgStatuses = checkedValues(toolbar, 'org_status');
+        activeFilters.itemTypes = checkedValues(toolbar, 'item_type');
+        updateFilterBadge();
 
         if (searchInput && tableBody) {
+            const currentParams = new URLSearchParams(window.location.search);
+            activeFilters.search = currentParams.get('search') || '';
+            if (activeFilters.search) {
+                searchInput.value = activeFilters.search;
+            }
+
             searchInput.addEventListener('input', function () {
                 activeFilters.search = this.value.toLowerCase().trim();
+                if (serverFilterUrl) {
+                    clearTimeout(searchTimer);
+                    searchTimer = setTimeout(() => loadServerFilteredTable(), 300);
+                    return;
+                }
                 applyFilters();
             });
         }
@@ -67,6 +86,12 @@ function initToolbar() {
                 activeFilters.statuses = checkedValues(toolbar, 'status').map(value => value.toLowerCase());
                 activeFilters.verification = checkedValues(toolbar, 'verification');
                 activeFilters.orgStatuses = checkedValues(toolbar, 'org_status');
+                activeFilters.itemTypes = checkedValues(toolbar, 'item_type');
+                if (serverFilterUrl) {
+                    loadServerFilteredTable();
+                    closeDropdowns();
+                    return;
+                }
                 applyFilters();
                 updateFilterBadge();
                 closeDropdowns();
@@ -80,9 +105,15 @@ function initToolbar() {
             activeFilters.statuses = [];
             activeFilters.verification = [];
             activeFilters.orgStatuses = [];
+            activeFilters.itemTypes = [];
 
             if (searchInput) searchInput.value = '';
             toolbar.querySelectorAll('input[type="checkbox"]').forEach(input => input.checked = false);
+            if (serverFilterUrl) {
+                loadComponent('main-display', serverFilterUrl);
+                closeDropdowns();
+                return;
+            }
             rows().forEach(row => row.style.display = '');
             updateFilterBadge();
             closeDropdowns();
@@ -152,9 +183,11 @@ function initToolbar() {
                     const roleText = cells[2]?.textContent.trim() || '';
                     const roleValue = getRoleValue(roleText);
                     const statusText = cells[4]?.textContent.trim().toLowerCase() || '';
+                    const itemTypeText = cells[1]?.textContent.trim() || '';
                     filterMatch =
                         (activeFilters.roles.length === 0 || activeFilters.roles.includes(roleValue)) &&
-                        (activeFilters.statuses.length === 0 || activeFilters.statuses.includes(statusText));
+                        (activeFilters.statuses.length === 0 || activeFilters.statuses.includes(statusText)) &&
+                        (activeFilters.itemTypes.length === 0 || activeFilters.itemTypes.includes(itemTypeText));
                 }
 
                 row.style.display = (searchMatch && filterMatch) ? '' : 'none';
@@ -164,9 +197,23 @@ function initToolbar() {
         function updateFilterBadge() {
             if (!filterBadge) return;
             const count = activeFilters.roles.length + activeFilters.statuses.length +
-                activeFilters.verification.length + activeFilters.orgStatuses.length;
+                activeFilters.verification.length + activeFilters.orgStatuses.length + activeFilters.itemTypes.length;
             filterBadge.textContent = count;
             filterBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+
+        function loadServerFilteredTable() {
+            const params = new URLSearchParams();
+            if (searchInput && searchInput.value.trim()) {
+                params.set('search', searchInput.value.trim());
+            }
+            checkedValues(toolbar, 'role').forEach(value => params.append('role[]', value));
+            checkedValues(toolbar, 'status').forEach(value => params.append('status[]', value));
+            checkedValues(toolbar, 'verification').forEach(value => params.append('verification[]', value));
+            checkedValues(toolbar, 'org_status').forEach(value => params.append('org_status[]', value));
+            checkedValues(toolbar, 'item_type').forEach(value => params.append('item_type[]', value));
+            const suffix = params.toString();
+            loadComponent('main-display', serverFilterUrl + (suffix ? `?${suffix}` : ''));
         }
     });
 }

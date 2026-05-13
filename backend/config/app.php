@@ -1,5 +1,7 @@
 <?php
 
+date_default_timezone_set('Asia/Manila');
+
 if (!defined('APP_BASE_PATH')) {
     $configuredBasePath = getenv('FOODBANK_BASE_PATH');
 
@@ -49,7 +51,27 @@ function app_rewrite_public_paths(string $content): string
         return $content;
     }
 
-    return str_replace('/foodbank/', app_url('/') . '/', $content);
+    $publicRoot = APP_BASE_PATH === '' ? '/' : APP_BASE_PATH . '/';
+
+    return str_replace(
+        [
+            'href="/foodbank/',
+            'src="/foodbank/',
+            'action="/foodbank/',
+            'data-target="/foodbank/',
+            "fetch('/foodbank/",
+            'fetch("/foodbank/',
+        ],
+        [
+            'href="' . $publicRoot,
+            'src="' . $publicRoot,
+            'action="' . $publicRoot,
+            'data-target="' . $publicRoot,
+            "fetch('" . $publicRoot,
+            'fetch("' . $publicRoot,
+        ],
+        $content
+    );
 }
 
 if (!defined('APP_PATH_REWRITE_STARTED')) {

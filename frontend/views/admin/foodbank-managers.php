@@ -9,10 +9,54 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
 $page     = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $per_page = 10;
 $offset   = ($page - 1) * $per_page;
+$search = trim($_GET['search'] ?? '');
+$selectedVerification = array_values(array_filter((array)($_GET['verification'] ?? []), 'strlen'));
+
+$where = ["fb.Manager_First_Name IS NOT NULL"];
+$filterParams = [];
+
+if ($search !== '') {
+    $where[] = "(
+        fb.Manager_First_Name LIKE ?
+        OR fb.Manager_Last_Name LIKE ?
+        OR fb.Manager_Email LIKE ?
+        OR fb.Manager_Phone LIKE ?
+        OR fb.Manager_Address LIKE ?
+        OR fb.Organization_Name LIKE ?
+        OR fb.Custom_FoodBank_ID LIKE ?
+        OR fb.Physical_Address LIKE ?
+    )";
+    $searchLike = '%' . $search . '%';
+    $filterParams = array_merge($filterParams, array_fill(0, 8, $searchLike));
+}
+
+if (!empty($selectedVerification)) {
+    $placeholders = implode(',', array_fill(0, count($selectedVerification), '?'));
+    $where[] = "fb.Verification_Status IN ($placeholders)";
+    $filterParams = array_merge($filterParams, $selectedVerification);
+}
+
+$whereSql = ' WHERE ' . implode(' AND ', $where);
+$queryParams = [];
+if ($search !== '') {
+    $queryParams['search'] = $search;
+}
+if (!empty($selectedVerification)) {
+    $queryParams['verification'] = $selectedVerification;
+}
+$filterQueryString = http_build_query($queryParams);
+$pageHref = function (int $targetPage) use ($filterQueryString): string {
+    $query = 'page=' . $targetPage;
+    if ($filterQueryString !== '') {
+        $query .= '&' . $filterQueryString;
+    }
+    return '?' . $query;
+};
 
 try {
     // Total count — only food banks that have a manager assigned
-    $stmt_count = $pdo->query("SELECT COUNT(*) FROM FOOD_BANKS WHERE Manager_First_Name IS NOT NULL");
+    $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM FOOD_BANKS fb" . $whereSql);
+    $stmt_count->execute($filterParams);
     $total      = $stmt_count->fetchColumn();
     $total_pages = ceil($total / $per_page);
 
@@ -31,12 +75,16 @@ try {
             fb.Verification_Status,
             fb.Org_Status
         FROM FOOD_BANKS fb
-        WHERE fb.Manager_First_Name IS NOT NULL
+        {$whereSql}
         ORDER BY fb.Date_Registered DESC
         LIMIT ? OFFSET ?
     ");
-    $stmt->bindValue(1, $per_page, PDO::PARAM_INT);
-    $stmt->bindValue(2, $offset,   PDO::PARAM_INT);
+    $paramIndex = 1;
+    foreach ($filterParams as $filterParam) {
+        $stmt->bindValue($paramIndex++, $filterParam);
+    }
+    $stmt->bindValue($paramIndex++, $per_page, PDO::PARAM_INT);
+    $stmt->bindValue($paramIndex,   $offset,   PDO::PARAM_INT);
     $stmt->execute();
     $managers = $stmt->fetchAll();
 
@@ -74,12 +122,12 @@ try {
     <div class="table-card">
 
         <!-- Toolbar -->
-        <div class="table-toolbar">
+        <div class="table-toolbar" data-server-filter-url="/frontend/views/admin/foodbank-managers.php">
             <div class="toolbar-search">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <input type="text" id="search-input" placeholder="Search managers...">
+                <input type="text" id="search-input" placeholder="Search managers..." value="<?= htmlspecialchars($search) ?>">
             </div>
 
             <!-- Filter -->
@@ -95,9 +143,9 @@ try {
                     <div class="filter-section">
                         <label class="filter-label">Verification Status</label>
                         <div class="filter-options">
-                            <label class="filter-option"><input type="checkbox" name="verification" value="Pending"> Pending</label>
-                            <label class="filter-option"><input type="checkbox" name="verification" value="Approved"> Approved</label>
-                            <label class="filter-option"><input type="checkbox" name="verification" value="Suspended"> Suspended</label>
+                            <label class="filter-option"><input type="checkbox" name="verification" value="Pending" <?= in_array('Pending', $selectedVerification, true) ? 'checked' : '' ?>> Pending</label>
+                            <label class="filter-option"><input type="checkbox" name="verification" value="Approved" <?= in_array('Approved', $selectedVerification, true) ? 'checked' : '' ?>> Approved</label>
+                            <label class="filter-option"><input type="checkbox" name="verification" value="Suspended" <?= in_array('Suspended', $selectedVerification, true) ? 'checked' : '' ?>> Suspended</label>
                         </div>
                     </div>
                     <div class="filter-actions">
@@ -222,7 +270,7 @@ try {
             </div>
             <div class="pagination">
                 <?php if ($page > 1): ?>
-                    <a href="?page=<?= $page - 1 ?>" class="page-btn">Previous</a>
+                    <a href="<?= htmlspecialchars($pageHref($page - 1)) ?>" class="page-btn">Previous</a>
                 <?php else: ?>
                     <button class="page-btn" disabled>Previous</button>
                 <?php endif; ?>
@@ -231,12 +279,12 @@ try {
                     <?php if ($p === $page): ?>
                         <button class="page-btn active" disabled><?= $p ?></button>
                     <?php else: ?>
-                        <a href="?page=<?= $p ?>" class="page-btn"><?= $p ?></a>
+                        <a href="<?= htmlspecialchars($pageHref($p)) ?>" class="page-btn"><?= $p ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
 
                 <?php if ($page < $total_pages): ?>
-                    <a href="?page=<?= $page + 1 ?>" class="page-btn">Next</a>
+                    <a href="<?= htmlspecialchars($pageHref($page + 1)) ?>" class="page-btn">Next</a>
                 <?php else: ?>
                     <button class="page-btn" disabled>Next</button>
                 <?php endif; ?>

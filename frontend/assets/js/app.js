@@ -4,7 +4,12 @@
 
 function appUrl(path) {
     const base = window.FOODBANK_BASE_URL || (window.location.pathname.startsWith('/foodbank/') ? '/foodbank' : '');
-    return `${base}/${String(path || '').replace(/^\/+/, '')}`;
+    const cleanPath = String(path || '')
+        .replace(/^https?:\/\/[^/]+/i, '')
+        .replace(/^\/+foodbank(?=\/|$)/i, '')
+        .replace(/^\/+/, '');
+
+    return `${base}/${cleanPath}`;
 }
 
 // Function to dynamically load HTML components
@@ -22,17 +27,24 @@ function moveModalsToBody() {
 }
 
 function loadComponent(containerId, filePath, callback = null) {
-    fetch(filePath)
+    const componentPath = appUrl(filePath);
+    const container = document.getElementById(containerId);
+
+    fetch(componentPath)
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.text();
         })
         .then(data => {
-            document.getElementById(containerId).innerHTML = data;
+            if (!container) return;
+            container.innerHTML = data;
+            if (containerId === 'main-display') {
+                container.dataset.currentComponentPath = componentPath;
+            }
             moveModalsToBody();
             
             // Manually execute scripts found in the injected HTML
-            const scripts = document.getElementById(containerId).querySelectorAll('script');
+            const scripts = container.querySelectorAll('script');
             scripts.forEach(oldScript => {
                 const newScript = document.createElement('script');
                 Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
@@ -44,7 +56,7 @@ function loadComponent(containerId, filePath, callback = null) {
             // Initialize page-specific scripts after content loads
             initPageScripts();
         })
-        .catch(error => console.error(`Error loading ${filePath}:`, error));
+        .catch(error => console.error(`Error loading ${componentPath}:`, error));
 }
 
 function currentAdminPagePath() {
@@ -150,6 +162,18 @@ loadComponent('main-display', currentAdminPagePath());
 // =====================================================================================================================
 
 document.addEventListener('click', function(e) {
+    const componentPageLink = e.target.closest('#main-display .pagination a.page-btn');
+    if (componentPageLink) {
+        e.preventDefault();
+
+        const mainDisplay = document.getElementById('main-display');
+        const currentComponent = mainDisplay?.dataset.currentComponentPath;
+        if (!currentComponent) return;
+
+        const nextUrl = new URL(componentPageLink.getAttribute('href'), window.location.origin + currentComponent);
+        loadComponent('main-display', nextUrl.pathname + nextUrl.search);
+        return;
+    }
 
     // A. DROPDOWN TOGGLE — matches <a class="nav-link dropdown-toggle">
     const dropdownToggle = e.target.closest('.has-dropdown > .dropdown-toggle');
@@ -293,10 +317,12 @@ window.initNotifications = function() {
             let unreadCount = 0;
 
             if (notifications.length === 0) {
-                notificationList.appendChild(noNotificationsMessage);
-                noNotificationsMessage.style.display = 'block';
+                if (noNotificationsMessage) {
+                    notificationList.appendChild(noNotificationsMessage);
+                    noNotificationsMessage.style.display = 'block';
+                }
             } else {
-                noNotificationsMessage.style.display = 'none';
+                if (noNotificationsMessage) noNotificationsMessage.style.display = 'none';
                 notifications.forEach(notif => {
                     if (!notif.Is_Read) unreadCount++;
                     const item = document.createElement('div');

@@ -12,6 +12,61 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $per_page = 10;
 $offset = ($page - 1) * $per_page;
+$search = trim($_GET['search'] ?? '');
+$selectedRoles = array_values(array_filter((array)($_GET['role'] ?? []), 'strlen'));
+$selectedStatuses = array_values(array_filter((array)($_GET['status'] ?? []), 'strlen'));
+
+$where = [];
+$filterParams = [];
+$displayNameSql = "CASE
+                WHEN a.Account_Type = 'FA' THEN fb.Organization_Name
+                ELSE CONCAT(u.First_Name, ' ', COALESCE(u.Middle_Name, ''), ' ', u.Last_Name)
+            END";
+
+if ($search !== '') {
+    $where[] = "(
+        {$displayNameSql} LIKE ?
+        OR a.Email LIKE ?
+        OR a.Phone_Number LIKE ?
+        OR a.Custom_App_ID LIKE ?
+        OR u.Address LIKE ?
+        OR fb.Physical_Address LIKE ?
+    )";
+    $searchLike = '%' . $search . '%';
+    $filterParams = array_merge($filterParams, array_fill(0, 6, $searchLike));
+}
+
+if (!empty($selectedRoles)) {
+    $placeholders = implode(',', array_fill(0, count($selectedRoles), '?'));
+    $where[] = "a.Account_Type IN ($placeholders)";
+    $filterParams = array_merge($filterParams, $selectedRoles);
+}
+
+if (!empty($selectedStatuses)) {
+    $placeholders = implode(',', array_fill(0, count($selectedStatuses), '?'));
+    $where[] = "LOWER(a.Status) IN ($placeholders)";
+    $filterParams = array_merge($filterParams, array_map('strtolower', $selectedStatuses));
+}
+
+$whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+$queryParams = [];
+if ($search !== '') {
+    $queryParams['search'] = $search;
+}
+if (!empty($selectedRoles)) {
+    $queryParams['role'] = $selectedRoles;
+}
+if (!empty($selectedStatuses)) {
+    $queryParams['status'] = $selectedStatuses;
+}
+$filterQueryString = http_build_query($queryParams);
+$pageHref = function (int $targetPage) use ($filterQueryString): string {
+    $query = 'page=' . $targetPage;
+    if ($filterQueryString !== '') {
+        $query .= '&' . $filterQueryString;
+    }
+    return '?' . $query;
+};
 
 try {
     $pdo->exec("
@@ -36,8 +91,13 @@ try {
     ");
 
     // Get total count of users
-    $stmt_count = $pdo->prepare("SELECT COUNT(*) as count FROM ACCOUNTS");
-    $stmt_count->execute();
+    $stmt_count = $pdo->prepare("
+        SELECT COUNT(*) as count
+        FROM ACCOUNTS a
+        LEFT JOIN USERS u ON a.User_ID = u.User_ID
+        LEFT JOIN FOOD_BANKS fb ON a.Account_ID = fb.Account_ID
+        " . $whereSql);
+    $stmt_count->execute($filterParams);
     $total_users = $stmt_count->fetch()['count'];
     $total_pages = ceil($total_users / $per_page);
 
@@ -85,11 +145,16 @@ try {
         LEFT JOIN ACCOUNT_DELETION_REQUESTS dr
           ON dr.Account_ID = a.Account_ID
          AND dr.Status = 'Pending'
+        {$whereSql}
         ORDER BY a.Date_Created DESC
         LIMIT ? OFFSET ?
     ");
-    $stmt->bindValue(1, $per_page, PDO::PARAM_INT);
-    $stmt->bindValue(2, $offset, PDO::PARAM_INT);
+    $paramIndex = 1;
+    foreach ($filterParams as $filterParam) {
+        $stmt->bindValue($paramIndex++, $filterParam);
+    }
+    $stmt->bindValue($paramIndex++, $per_page, PDO::PARAM_INT);
+    $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
     $stmt->execute();
     $users = $stmt->fetchAll();
     
@@ -176,13 +241,13 @@ try {
     <div class="table-card">
 
         <!-- Toolbar -->
-        <div class="table-toolbar">
+        <div class="table-toolbar" data-server-filter-url="/frontend/views/admin/user_management.php">
             <!-- Search -->
             <div class="toolbar-search">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <input type="text" id="search-input" placeholder="Search users...">
+                <input type="text" id="search-input" placeholder="Search users..." value="<?= htmlspecialchars($search) ?>">
             </div>
 
             <!-- Filter -->
@@ -201,13 +266,13 @@ try {
                         <label class="filter-label">Role</label>
                         <div class="filter-options">
                             <label class="filter-option">
-                                <input type="checkbox" name="role" value="PA"> Donor
+                                <input type="checkbox" name="role" value="PA" <?= in_array('PA', $selectedRoles, true) ? 'checked' : '' ?>> Donor
                             </label>
                             <label class="filter-option">
-                                <input type="checkbox" name="role" value="FA"> Food Bank Account
+                                <input type="checkbox" name="role" value="FA" <?= in_array('FA', $selectedRoles, true) ? 'checked' : '' ?>> Food Bank Account
                             </label>
                             <label class="filter-option">
-                                <input type="checkbox" name="role" value="AA"> Admin
+                                <input type="checkbox" name="role" value="AA" <?= in_array('AA', $selectedRoles, true) ? 'checked' : '' ?>> Admin
                             </label>
                         </div>
                     </div>
@@ -215,10 +280,10 @@ try {
                         <label class="filter-label">Status</label>
                         <div class="filter-options">
                             <label class="filter-option">
-                                <input type="checkbox" name="status" value="active" checked> Active
+                                <input type="checkbox" name="status" value="active" <?= in_array('active', array_map('strtolower', $selectedStatuses), true) ? 'checked' : '' ?>> Active
                             </label>
                             <label class="filter-option">
-                                <input type="checkbox" name="status" value="disabled"> Disabled
+                                <input type="checkbox" name="status" value="disabled" <?= in_array('disabled', array_map('strtolower', $selectedStatuses), true) ? 'checked' : '' ?>> Disabled
                             </label>
                         </div>
                     </div>
@@ -359,7 +424,7 @@ try {
             </div>
             <div class="pagination">
                 <?php if ($page > 1): ?>
-                <a href="?page=<?= $page - 1 ?>" class="page-btn">Previous</a>
+                <a href="<?= htmlspecialchars($pageHref($page - 1)) ?>" class="page-btn">Previous</a>
                 <?php else: ?>
                 <button class="page-btn" disabled>Previous</button>
                 <?php endif; ?>
@@ -368,12 +433,12 @@ try {
                     <?php if ($p === $page): ?>
                         <button class="page-btn active" disabled><?= $p ?></button>
                     <?php else: ?>
-                        <a href="?page=<?= $p ?>" class="page-btn"><?= $p ?></a>
+                        <a href="<?= htmlspecialchars($pageHref($p)) ?>" class="page-btn"><?= $p ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
                 
                 <?php if ($page < $total_pages): ?>
-                <a href="?page=<?= $page + 1 ?>" class="page-btn">Next</a>
+                <a href="<?= htmlspecialchars($pageHref($page + 1)) ?>" class="page-btn">Next</a>
                 <?php else: ?>
                 <button class="page-btn" disabled>Next</button>
                 <?php endif; ?>

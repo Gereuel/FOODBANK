@@ -11,13 +11,13 @@ $range  = $_GET['range'] ?? '30';
 $days   = in_array($range, ['7','30','90','365']) ? (int)$range : 30;
 $cutoff = date('Y-m-d', strtotime("-{$days} days"));
 
-$range_label = match($days) {
+$range_labels = [
     7   => 'Last 7 Days',
     30  => 'Last 30 Days',
     90  => 'Last 3 Months',
     365 => 'Last Year',
-    default => 'Last 30 Days',
-};
+];
+$range_label = $range_labels[$days] ?? 'Last 30 Days';
 
 try {
     // ── Donation summary KPIs ─────────────────────────────────
@@ -121,9 +121,13 @@ try {
 }
 
 // ── Chart data ────────────────────────────────────────────────
-$trend_labels = array_map(fn($r) => date('M j', strtotime($r['week_start'])), $donation_trend);
+$trend_labels = array_map(function ($r) {
+    return date('M j', strtotime($r['week_start']));
+}, $donation_trend);
 $trend_counts = array_column($donation_trend, 'count');
-$reg_labels   = array_map(fn($r) => date('M j', strtotime($r['week_start'])), $reg_trend);
+$reg_labels   = array_map(function ($r) {
+    return date('M j', strtotime($r['week_start']));
+}, $reg_trend);
 $reg_counts   = array_column($reg_trend, 'count');
 $type_labels  = array_column($donations_by_type, 'Donation_Type');
 $type_counts  = array_column($donations_by_type, 'count');

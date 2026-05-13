@@ -136,7 +136,7 @@ function isOperatingToday(?string $operatingDays): bool {
     $days = strtolower(trim((string) $operatingDays));
 
     if ($days === '') {
-        return false;
+        return true;
     }
 
     if (preg_match('/\b(daily|everyday|every day)\b/', $days)) {
@@ -160,17 +160,32 @@ function isOperatingToday(?string $operatingDays): bool {
     return false;
 }
 
+function isCurrentTimeInRange(?string $timeOpen, ?string $timeClose): bool {
+    if (!$timeOpen || !$timeClose) {
+        return false;
+    }
+
+    $now = strtotime(date('H:i:s'));
+    $open = strtotime($timeOpen);
+    $close = strtotime($timeClose);
+
+    if ($open === false || $close === false) {
+        return false;
+    }
+
+    if ($open <= $close) {
+        return $now >= $open && $now <= $close;
+    }
+
+    return $now >= $open || $now <= $close;
+}
+
 function getBankStatus(?string $timeOpen, ?string $timeClose, ?string $operatingDays = null): string {
     if (!isOperatingToday($operatingDays)) {
         return 'Closed';
     }
 
-    if (!$timeOpen || !$timeClose) {
-        return 'Closed';
-    }
-
-    $now = strtotime(date('H:i:s'));
-    return ($now >= strtotime($timeOpen) && $now <= strtotime($timeClose)) ? 'Open Now' : 'Closed';
+    return isCurrentTimeInRange($timeOpen, $timeClose) ? 'Open Now' : 'Closed';
 }
 
 function shortenAddress(?string $address, int $limit = 78): string {

@@ -82,7 +82,7 @@ try {
                                         <?= htmlspecialchars($notif['Message']) ?>
                                     </div>
                                     <?php if ($notif['Link']): ?>
-                                        <a href="#" onclick="loadComponent('main-display', '<?= $notif['Link'] ?>')" 
+                                        <a href="#" onclick="loadComponent('main-display', '<?= htmlspecialchars($notif['Link'], ENT_QUOTES) ?>')"
                                            style="font-size: 12px; color: var(--green-main); text-decoration: none; margin-top: 4px; display: inline-block;">
                                            View related page →
                                         </a>
@@ -116,10 +116,10 @@ try {
             </div>
             <div class="pagination">
                 <?php if ($page > 1): ?>
-                    <button class="page-btn" onclick="loadComponent('main-display', '/foodbank/frontend/views/admin/notifications.php?page=<?= $page-1 ?>')">Previous</button>
+                    <button class="page-btn" onclick="loadComponent('main-display', appUrl('/frontend/views/admin/notifications.php?page=<?= $page-1 ?>'))">Previous</button>
                 <?php endif; ?>
                 <?php if ($page < $total_pages): ?>
-                    <button class="page-btn" onclick="loadComponent('main-display', '/foodbank/frontend/views/admin/notifications.php?page=<?= $page+1 ?>')">Next</button>
+                    <button class="page-btn" onclick="loadComponent('main-display', appUrl('/frontend/views/admin/notifications.php?page=<?= $page+1 ?>'))">Next</button>
                 <?php endif; ?>
             </div>
         </div>
@@ -129,20 +129,20 @@ try {
 <script>
 window.initNotificationsPage = function() {
     window.markReadPage = async function(id) {
-        await fetch(`/foodbank/backend/api/notifications/mark_as_read.php?id=${id}`, { method: 'POST' });
-        loadComponent('main-display', '/foodbank/frontend/views/admin/notifications.php?page=<?= $page ?>');
+        await fetch(appUrl(`/backend/api/notifications/mark_as_read.php?id=${id}`), { method: 'POST' });
+        loadComponent('main-display', appUrl('/frontend/views/admin/notifications.php?page=<?= $page ?>'));
     };
 
     window.deleteNotification = async function(id) {
         // Placeholder for delete API if implemented
-        loadComponent('main-display', '/foodbank/frontend/views/admin/notifications.php?page=<?= $page ?>');
+        loadComponent('main-display', appUrl('/frontend/views/admin/notifications.php?page=<?= $page ?>'));
     };
 
     const markAllBtn = document.getElementById('mark-all-read-page');
     if (markAllBtn) {
         markAllBtn.onclick = async function() {
-            await fetch('/foodbank/backend/api/notifications/mark_all_read.php', { method: 'POST' });
-            loadComponent('main-display', '/foodbank/frontend/views/admin/notifications.php');
+            await fetch(appUrl('/backend/api/notifications/mark_all_read.php'), { method: 'POST' });
+            loadComponent('main-display', appUrl('/frontend/views/admin/notifications.php'));
         };
     }
 };

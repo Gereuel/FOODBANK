@@ -68,7 +68,7 @@ function allFbDayInRange(int $today, int $start, int $end): bool {
 
 function allFbOperatesToday(?string $operatingDays): bool {
     $days = strtolower(trim((string) $operatingDays));
-    if ($days === '') return false;
+    if ($days === '') return true;
     if (preg_match('/\b(daily|everyday|every day)\b/', $days)) return true;
 
     $today = (int) date('N');
@@ -84,10 +84,23 @@ function allFbOperatesToday(?string $operatingDays): bool {
     return false;
 }
 
+function allFbTimeInRange(?string $timeOpen, ?string $timeClose): bool {
+    if (!$timeOpen || !$timeClose) return false;
+
+    $now = strtotime(date('H:i:s'));
+    $open = strtotime($timeOpen);
+    $close = strtotime($timeClose);
+
+    if ($open === false || $close === false) return false;
+
+    return $open <= $close
+        ? ($now >= $open && $now <= $close)
+        : ($now >= $open || $now <= $close);
+}
+
 function allFbStatus(?string $timeOpen, ?string $timeClose, ?string $operatingDays): string {
     if (!$timeOpen || !$timeClose || !allFbOperatesToday($operatingDays)) return 'Closed';
-    $now = strtotime(date('H:i:s'));
-    return ($now >= strtotime($timeOpen) && $now <= strtotime($timeClose)) ? 'Open Now' : 'Closed';
+    return allFbTimeInRange($timeOpen, $timeClose) ? 'Open Now' : 'Closed';
 }
 
 function allFbShortAddress(?string $address, int $limit = 78): string {

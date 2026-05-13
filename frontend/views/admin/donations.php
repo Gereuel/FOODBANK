@@ -9,10 +9,72 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
 $page     = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $per_page = 10;
 $offset   = ($page - 1) * $per_page;
+$search = trim($_GET['search'] ?? '');
+$selectedStatuses = array_values(array_filter((array)($_GET['status'] ?? []), 'strlen'));
+$selectedItemTypes = array_values(array_filter((array)($_GET['item_type'] ?? []), 'strlen'));
+
+$where = [];
+$filterParams = [];
+
+if (!empty($selectedStatuses)) {
+    $placeholders = implode(',', array_fill(0, count($selectedStatuses), '?'));
+    $where[] = "d.Status IN ($placeholders)";
+    $filterParams = array_merge($filterParams, $selectedStatuses);
+}
+
+if (!empty($selectedItemTypes)) {
+    $placeholders = implode(',', array_fill(0, count($selectedItemTypes), '?'));
+    $where[] = "d.Item_Type IN ($placeholders)";
+    $filterParams = array_merge($filterParams, $selectedItemTypes);
+}
+
+if ($search !== '') {
+    $where[] = "(
+        d.Tracking_Number LIKE ?
+        OR d.Item_Type LIKE ?
+        OR d.Item_Description LIKE ?
+        OR d.Quantity_Description LIKE ?
+        OR d.Pickup_Address LIKE ?
+        OR d.Status LIKE ?
+        OR CONCAT(u.First_Name, ' ', u.Last_Name) LIKE ?
+        OR a.Email LIKE ?
+        OR a.Custom_App_ID LIKE ?
+        OR fb.Organization_Name LIKE ?
+    )";
+    $searchLike = '%' . $search . '%';
+    $filterParams = array_merge($filterParams, array_fill(0, 10, $searchLike));
+}
+
+$whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+$queryParams = [];
+if ($search !== '') {
+    $queryParams['search'] = $search;
+}
+if (!empty($selectedStatuses)) {
+    $queryParams['status'] = $selectedStatuses;
+}
+if (!empty($selectedItemTypes)) {
+    $queryParams['item_type'] = $selectedItemTypes;
+}
+$filterQueryString = http_build_query($queryParams);
+$pageHref = function (int $targetPage) use ($filterQueryString): string {
+    $query = 'page=' . $targetPage;
+    if ($filterQueryString !== '') {
+        $query .= '&' . $filterQueryString;
+    }
+    return '?' . $query;
+};
 
 try {
     // Total count
-    $stmt_count = $pdo->query("SELECT COUNT(*) FROM DONATIONS");
+    $stmt_count = $pdo->prepare("
+        SELECT COUNT(*)
+        FROM DONATIONS d
+        JOIN ACCOUNTS a  ON d.Donor_Account_ID = a.Account_ID
+        JOIN USERS u     ON a.User_ID = u.User_ID
+        JOIN FOOD_BANKS fb ON d.FoodBank_ID = fb.FoodBank_ID
+        " . $whereSql);
+    $stmt_count->execute($filterParams);
     $total      = $stmt_count->fetchColumn();
     $total_pages = ceil($total / $per_page);
 
@@ -51,11 +113,16 @@ try {
         JOIN FOOD_BANKS fb ON d.FoodBank_ID = fb.FoodBank_ID
         LEFT JOIN ACCOUNTS mfa ON fb.Account_ID = mfa.Account_ID
         LEFT JOIN USERS mu     ON mfa.User_ID = mu.User_ID
+        {$whereSql}
         ORDER BY d.Date_Donated DESC
         LIMIT ? OFFSET ?
     ");
-    $stmt->bindValue(1, $per_page, PDO::PARAM_INT);
-    $stmt->bindValue(2, $offset,   PDO::PARAM_INT);
+    $paramIndex = 1;
+    foreach ($filterParams as $filterParam) {
+        $stmt->bindValue($paramIndex++, $filterParam);
+    }
+    $stmt->bindValue($paramIndex++, $per_page, PDO::PARAM_INT);
+    $stmt->bindValue($paramIndex,   $offset,   PDO::PARAM_INT);
     $stmt->execute();
     $donations = $stmt->fetchAll();
 
@@ -154,12 +221,12 @@ $status_classes = [
     <div class="table-card">
 
         <!-- Toolbar -->
-        <div class="table-toolbar">
+        <div class="table-toolbar" data-server-filter-url="/frontend/views/admin/donations.php">
             <div class="toolbar-search">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <input type="text" id="search-input" placeholder="Search donations...">
+                <input type="text" id="search-input" placeholder="Search donations..." value="<?= htmlspecialchars($search) ?>">
             </div>
 
             <!-- Status Filter -->
@@ -175,21 +242,21 @@ $status_classes = [
                     <div class="filter-section">
                         <label class="filter-label">Status</label>
                         <div class="filter-options">
-                            <label class="filter-option"><input type="checkbox" name="status" value="Pending"> Pending</label>
-                            <label class="filter-option"><input type="checkbox" name="status" value="In Transit"> In Transit</label>
-                            <label class="filter-option"><input type="checkbox" name="status" value="Received"> Received</label>
-                            <label class="filter-option"><input type="checkbox" name="status" value="Cancelled"> Cancelled</label>
+                            <label class="filter-option"><input type="checkbox" name="status" value="Pending" <?= in_array('Pending', $selectedStatuses, true) ? 'checked' : '' ?>> Pending</label>
+                            <label class="filter-option"><input type="checkbox" name="status" value="In Transit" <?= in_array('In Transit', $selectedStatuses, true) ? 'checked' : '' ?>> In Transit</label>
+                            <label class="filter-option"><input type="checkbox" name="status" value="Received" <?= in_array('Received', $selectedStatuses, true) ? 'checked' : '' ?>> Received</label>
+                            <label class="filter-option"><input type="checkbox" name="status" value="Cancelled" <?= in_array('Cancelled', $selectedStatuses, true) ? 'checked' : '' ?>> Cancelled</label>
                         </div>
                     </div>
                     <div class="filter-section">
                         <label class="filter-label">Item Type</label>
                         <div class="filter-options">
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Food Items"> Food Items</label>
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Clothing"> Clothing</label>
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Cash Donation"> Cash Donation</label>
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Medicine"> Medicine</label>
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Perishable Goods"> Perishable Goods</label>
-                            <label class="filter-option"><input type="checkbox" name="item_type" value="Other"> Other</label>
+                            <label class="filter-option"><input type="checkbox" name="item_type" value="Food Items" <?= in_array('Food Items', $selectedItemTypes, true) ? 'checked' : '' ?>> Food Items</label>
+                            <label class="filter-option"><input type="checkbox" name="item_type" value="Clothing" <?= in_array('Clothing', $selectedItemTypes, true) ? 'checked' : '' ?>> Clothing</label>
+                            <label class="filter-option"><input type="checkbox" name="item_type" value="Cash Donation" <?= in_array('Cash Donation', $selectedItemTypes, true) ? 'checked' : '' ?>> Cash Donation</label>
+                            <label class="filter-option"><input type="checkbox" name="item_type" value="Medicine" <?= in_array('Medicine', $selectedItemTypes, true) ? 'checked' : '' ?>> Medicine</label>
+                            <label class="filter-option"><input type="checkbox" name="item_type" value="Perishable Goods" <?= in_array('Perishable Goods', $selectedItemTypes, true) ? 'checked' : '' ?>> Perishable Goods</label>
+                            <label class="filter-option"><input type="checkbox" name="item_type" value="Other" <?= in_array('Other', $selectedItemTypes, true) ? 'checked' : '' ?>> Other</label>
                         </div>
                     </div>
                     <div class="filter-actions">
@@ -322,7 +389,7 @@ $status_classes = [
             </div>
             <div class="pagination">
                 <?php if ($page > 1): ?>
-                    <a href="?page=<?= $page - 1 ?>" class="page-btn">Previous</a>
+                    <a href="<?= htmlspecialchars($pageHref($page - 1)) ?>" class="page-btn">Previous</a>
                 <?php else: ?>
                     <button class="page-btn" disabled>Previous</button>
                 <?php endif; ?>
@@ -331,12 +398,12 @@ $status_classes = [
                     <?php if ($p === $page): ?>
                         <button class="page-btn active" disabled><?= $p ?></button>
                     <?php else: ?>
-                        <a href="?page=<?= $p ?>" class="page-btn"><?= $p ?></a>
+                        <a href="<?= htmlspecialchars($pageHref($p)) ?>" class="page-btn"><?= $p ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
 
                 <?php if ($page < $total_pages): ?>
-                    <a href="?page=<?= $page + 1 ?>" class="page-btn">Next</a>
+                    <a href="<?= htmlspecialchars($pageHref($page + 1)) ?>" class="page-btn">Next</a>
                 <?php else: ?>
                     <button class="page-btn" disabled>Next</button>
                 <?php endif; ?>
