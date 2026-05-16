@@ -10,6 +10,7 @@
         </div>
         <div class="modal-body">
             <form action="/foodbank/backend/controllers/admin/foodbanks/process_edit_manager.php" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                 <input type="hidden" name="foodbank_id" id="em-foodbank-id">
 
                 <h3>Manager Information</h3>

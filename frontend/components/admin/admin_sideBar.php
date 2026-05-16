@@ -55,6 +55,14 @@
             </a>
         </li>
 
+        <!-- Support -->
+        <li>
+            <a href="#" class="nav-link" data-target="/foodbank/frontend/views/admin/support.php">
+                <i class="far fa-life-ring"></i>
+                <span class="menu-text">Support</span>
+            </a>
+        </li>
+
         <!-- Settings -->
         <li>
             <a href="#" class="nav-link" data-target="/foodbank/frontend/views/admin/settings.php">

@@ -49,7 +49,8 @@ foreach ($stmt->fetchAll() as $row) {
         'body' => $row['Body'],
         'is_mine' => (int) $row['Sender_Account_ID'] === $currentAccountId,
         'created_at' => $row['Created_At'],
-        'time_label' => date('g:i A', strtotime($row['Created_At'])),
+        'date_label' => message_date_label($row['Created_At']),
+        'time_label' => message_clock_label($row['Created_At']),
         'is_read' => (bool) $row['Is_Read'],
     ];
 }

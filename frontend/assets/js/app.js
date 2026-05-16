@@ -12,6 +12,27 @@ function appUrl(path) {
     return `${base}/${cleanPath}`;
 }
 
+function formatNotificationDate(value) {
+    if (!value) return '';
+
+    const normalized = String(value).replace(' ', 'T') + '+08:00';
+    const date = new Date(normalized);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleString('en-PH', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Manila',
+    });
+}
+
 // Function to dynamically load HTML components
 function moveModalsToBody() {
     document.querySelectorAll('.modal').forEach(modal => {
@@ -79,6 +100,7 @@ function currentAdminPagePath() {
         foodbanks: '/frontend/views/admin/foodbanks.php',
         foodbank_managers: '/frontend/views/admin/foodbank-managers.php',
         reports: '/frontend/views/admin/reports.php',
+        support: '/frontend/views/admin/support.php',
         settings: '/frontend/views/admin/settings.php',
         notifications: '/frontend/views/admin/notifications.php',
     };
@@ -106,10 +128,18 @@ function initPageScripts() {
     if (typeof initDonationModals === 'function') initDonationModals();
     if (typeof initFoodBankModals === 'function') initFoodBankModals();
     if (typeof initManagerModals === 'function') initManagerModals();
-    if (typeof initReports       === 'function') initReports();
-    if (typeof initDashboard     === 'function') initDashboard();
-    if (typeof initSettings      === 'function') initSettings();
-    if (typeof initNotificationsPage === 'function') initNotificationsPage();
+    if (typeof initReports === 'function' && document.getElementById('rptDonationTrendChart')) {
+        initReports();
+    }
+    if (typeof initDashboard === 'function' && document.getElementById('dashDonationChart')) {
+        initDashboard();
+    }
+    if (typeof initSettings === 'function' && document.getElementById('avatar-input')) {
+        initSettings();
+    }
+    if (typeof initNotificationsPage === 'function' && document.getElementById('mark-all-read-page')) {
+        initNotificationsPage();
+    }
     initGlobalSearch();
 }
 
@@ -333,7 +363,7 @@ window.initNotifications = function() {
                         <div class="notification-icon"><i class="fas fa-bell"></i></div>
                         <div class="notification-content">
                             <div class="notification-message">${notif.Message}</div>
-                            <div class="notification-time">${new Date(notif.Created_At).toLocaleString()}</div>
+                            <div class="notification-time">${formatNotificationDate(notif.Created_At)}</div>
                         </div>
                     `;
                     item.addEventListener('click', async function() {

@@ -54,6 +54,13 @@
                 </div>
             </div>
 
+            <h3>Map Screenshot</h3>
+            <div class="map-image-preview" id="vfb-map-preview" hidden>
+                <img src="" alt="Food bank map screenshot" id="vfb-map-preview-img">
+                <a href="#" target="_blank" rel="noopener" id="vfb-map-preview-link">Open map screenshot</a>
+            </div>
+            <p class="field-hint" id="vfb-map-empty">No map screenshot uploaded.</p>
+
             <h3>Public Contact</h3>
             <div class="view-grid">
                 <div class="view-field">

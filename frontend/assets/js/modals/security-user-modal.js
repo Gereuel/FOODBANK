@@ -118,8 +118,6 @@ function initSecurityModal() {
             const btn         = this;
             const newStatus   = btn.textContent.trim() === 'Disable Account' ? 'Inactive' : 'Active';
 
-            console.log('Toggle firing — account_id:', accountId, '| status:', newStatus);
-
             if (!confirm(`Are you sure you want to ${newStatus === 'Inactive' ? 'disable' : 'enable'} this account?`)) return;
 
             btn.disabled = true;

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../helpers/schema_columns.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
@@ -15,6 +16,12 @@ if (!$account_id || !in_array($two_fa, [0, 1])) {
 }
 
 try {
+    if (!db_column_exists($pdo, 'ACCOUNTS', 'Two_FA_Enabled')) {
+        http_response_code(410);
+        echo json_encode(['success' => false, 'message' => 'Two-factor authentication is not available.']);
+        exit();
+    }
+
     $stmt = $pdo->prepare("UPDATE ACCOUNTS SET Two_FA_Enabled = ? WHERE Account_ID = ?");
     $stmt->execute([$two_fa, $account_id]);
     echo json_encode(['success' => true]);

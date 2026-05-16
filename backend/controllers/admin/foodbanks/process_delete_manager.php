@@ -3,13 +3,17 @@ session_start();
 require_once __DIR__ . '/../../../config/database.php';
 
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
-    header("Location: ../../../../../login.php?error=unauthorized"); exit();
+    header("Location: /foodbank/login.php?error=unauthorized"); exit();
+}
+
+if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbank_managers&error=invalid_request"); exit();
 }
 
 $foodbank_id = intval($_POST['foodbank_id'] ?? 0);
 
 if (!$foodbank_id) {
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=missing_fields"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbank_managers&error=missing_fields"); exit();
 }
 
 try {
@@ -25,10 +29,10 @@ try {
     ");
     $stmt->execute([$foodbank_id]);
 
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?success=manager_removed"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbank_managers&success=manager_removed"); exit();
 
 } catch (PDOException $e) {
     error_log("Delete Manager Error: " . $e->getMessage());
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=db_error"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbank_managers&error=db_error"); exit();
 }
 ?>

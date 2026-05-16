@@ -16,12 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture'])) 
     $max_size = 2 * 1024 * 1024; // 2MB limit
     
     if (!in_array($file['type'], $allowed_types)) {
-        header("Location: /foodbank/frontend/views/admin/admin_index.php?error=invalid_file_type");
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?page=settings&error=invalid_file_type");
         exit();
     }
     
     if ($file['size'] > $max_size) {
-        header("Location: /foodbank/frontend/views/admin/admin_index.php?error=file_too_large");
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?page=settings&error=file_too_large");
         exit();
     }
 
@@ -48,12 +48,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture'])) 
             ");
             $stmt->execute([$public_url, $_SESSION['Account_ID']]);
 
-            header("Location: /foodbank/frontend/views/admin/admin_index.php?status=profile_updated");
+            header("Location: /foodbank/frontend/views/admin/admin_index.php?page=settings&status=profile_updated");
             exit();
         } catch (PDOException $e) {
             die("Database Error: " . $e->getMessage());
         }
     }
 }
-header("Location: /foodbank/frontend/views/admin/admin_index.php?error=upload_failed");
+header("Location: /foodbank/frontend/views/admin/admin_index.php?page=settings&error=upload_failed");
 exit();

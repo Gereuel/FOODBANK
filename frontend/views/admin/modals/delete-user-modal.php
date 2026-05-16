@@ -39,6 +39,7 @@
             </div>
 
             <form action="/foodbank/backend/controllers/admin/users/process_delete_user.php" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                 <input type="hidden" name="user_id" id="delete-user-id">
                 <input type="hidden" name="account_id" id="delete-account-id">
                 <input type="hidden" name="deletion_request_id" id="delete-request-id">

@@ -127,6 +127,21 @@ body {
     color: #999;
 }
 
+.signup-notice {
+    width: 100%;
+    max-width: 500px;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    border: 1px solid #E4A7A1;
+    border-left: 4px solid #B94A3F;
+    border-radius: 8px;
+    background: #FFF1F0;
+    color: #7A2E28;
+    font-family: var(--body-font);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
 /* FORM STEPS */
 .step { display: none; }
 .step.active { display: block; }

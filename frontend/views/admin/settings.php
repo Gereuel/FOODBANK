@@ -6,6 +6,10 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     die("Unauthorized Access.");
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 try {
     // Fetch current admin data
     $stmt = $pdo->prepare("
@@ -90,6 +94,26 @@ try {
         </div>
     <?php endif; ?>
 
+    <?php if (isset($_GET['error'])): ?>
+        <div class="alert alert-error">
+            <?php
+            $messages = [
+                'missing_fields' => 'Please fill in all required fields.',
+                'weak_password' => 'New password must be at least 8 characters.',
+                'password_mismatch' => 'New passwords do not match.',
+                'current_password' => 'Current password is incorrect.',
+                'invalid_file_type' => 'Invalid image type. Use JPG, PNG, or WEBP.',
+                'file_too_large' => 'Profile picture must be 2MB or smaller.',
+                'upload_failed' => 'Upload failed. Please try again.',
+                'db_error' => 'A database error occurred. Please try again.',
+                'access_denied' => 'Access denied.',
+                'invalid_request' => 'Invalid request. Please try again.',
+            ];
+            echo $messages[$_GET['error']] ?? 'An unexpected error occurred.';
+            ?>
+        </div>
+    <?php endif; ?>
+
     <div class="settings-grid">
         <!-- Left: Profile Summary -->
         <aside class="profile-card-sticky">
@@ -161,6 +185,7 @@ try {
                 </div>
                 <div style="padding: 0 var(--spacing-2xl) var(--spacing-2xl);">
                     <form action="/foodbank/backend/controllers/admin/settings/change_password.php" method="POST" class="modal-body" style="padding:0;">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                         <div class="settings-form-group">
                             <label>Current Password</label>
                             <input type="password" name="current_password" required>

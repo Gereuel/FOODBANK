@@ -3,6 +3,7 @@ session_start();
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../helpers/text_format.php';
 
 if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'PA') {
     http_response_code(401);
@@ -10,12 +11,12 @@ if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'PA
     exit();
 }
 
-$firstName = trim($_POST['first_name'] ?? '');
-$middleName = trim($_POST['middle_name'] ?? '');
-$lastName = trim($_POST['last_name'] ?? '');
+$firstName = format_name_or_address($_POST['first_name'] ?? '');
+$middleName = format_name_or_address($_POST['middle_name'] ?? '');
+$lastName = format_name_or_address($_POST['last_name'] ?? '');
 $email = trim($_POST['email'] ?? '');
 $phone = trim($_POST['phone'] ?? '');
-$address = trim($_POST['address'] ?? '');
+$address = format_name_or_address($_POST['address'] ?? '');
 
 if ($firstName === '' || $lastName === '' || $email === '') {
     http_response_code(400);

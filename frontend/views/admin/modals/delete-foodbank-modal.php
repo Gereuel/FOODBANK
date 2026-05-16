@@ -16,6 +16,7 @@
                 <p>Delete <strong id="dfb-name">—</strong>?</p>
             </div>
             <form action="/foodbank/backend/controllers/admin/foodbanks/process_delete_foodbank.php" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                 <input type="hidden" name="foodbank_id" id="dfb-id">
                 <div class="modal-footer">
                     <button type="button" onclick="closeDeleteFoodBankModal()">Cancel</button>

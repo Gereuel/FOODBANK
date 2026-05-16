@@ -101,6 +101,7 @@ try {
     <link rel="stylesheet" href="../../assets/css/pages/admin/adminDashboard.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../../assets/css/pages/admin/user_management.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../../assets/css/pages/admin/admin-animations.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../../assets/css/pages/admin/support.css?v=<?php echo time(); ?>">
     
     <link rel="icon" type="image/png" href="/foodbank/frontend/assets/images/logo.png">
 

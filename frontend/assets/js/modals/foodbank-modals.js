@@ -175,6 +175,7 @@ function openViewFoodBankModal(fb) {
 
     document.getElementById('vfb-public-email').textContent  = fb.Public_Email || '—';
     document.getElementById('vfb-public-phone').textContent  = fb.Public_Phone || '—';
+    setFoodBankMapPreview('vfb', fb.Map_Image_URL || '');
 
     const managerName = [fb.Manager_First_Name, fb.Manager_Last_Name].filter(Boolean).join(' ');
     document.getElementById('vfb-manager-name').textContent    = managerName || '—';
@@ -209,6 +210,8 @@ function openEditFoodBankModal(fb) {
     document.getElementById('efb-mgr-email').value     = fb.Manager_Email || '';
     document.getElementById('efb-mgr-phone').value     = fb.Manager_Phone || '';
     document.getElementById('efb-mgr-address').value   = fb.Manager_Address || '';
+    document.getElementById('efb-map-image').value     = '';
+    setFoodBankMapPreview('efb', fb.Map_Image_URL || '');
 
     document.getElementById('editFoodBankModal').classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -240,6 +243,28 @@ function formatTimeFB(timeStr) {
     const ampm   = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 || 12;
     return `${hour12}:${m} ${ampm}`;
+}
+
+function setFoodBankMapPreview(prefix, mapUrl) {
+    const preview = document.getElementById(`${prefix}-map-preview`);
+    const img = document.getElementById(`${prefix}-map-preview-img`);
+    const link = document.getElementById(`${prefix}-map-preview-link`);
+    const empty = document.getElementById(`${prefix}-map-empty`);
+
+    if (!preview || !img || !link) return;
+
+    if (mapUrl) {
+        preview.hidden = false;
+        img.src = mapUrl;
+        link.href = mapUrl;
+        if (empty) empty.hidden = true;
+        return;
+    }
+
+    preview.hidden = true;
+    img.removeAttribute('src');
+    link.href = '#';
+    if (empty) empty.hidden = false;
 }
 
 // ── Init ───────────────────────────────────────────────────

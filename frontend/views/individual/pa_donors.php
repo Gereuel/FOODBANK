@@ -25,7 +25,7 @@ try {
             COUNT(d.Donation_ID) AS Donation_Count,
             MAX(d.Date_Donated) AS Last_Donation_Date
         FROM ACCOUNTS a
-        JOIN USERS u ON u.User_ID = a.User_ID
+        LEFT JOIN USERS u ON u.User_ID = a.User_ID
         LEFT JOIN DONATIONS d
             ON d.Donor_Account_ID = a.Account_ID
            AND d.Status != 'Cancelled'
@@ -45,8 +45,7 @@ try {
             u.Birthdate,
             u.Profile_Picture,
             u.Profile_Picture_URL
-        ORDER BY Donation_Count DESC, u.First_Name ASC, u.Last_Name ASC
-        LIMIT 12
+        ORDER BY Donation_Count DESC, u.First_Name ASC, u.Last_Name ASC, a.Email ASC
     ");
     $stmt->execute([$_SESSION['Account_ID']]);
     $donors = $stmt->fetchAll();
@@ -134,6 +133,9 @@ function donor_profile_payload(array $donor, string $name, string $avatar, strin
                     $donor['Last_Name'] ?? '',
                     $donor['Suffix'] ?? '',
                 ])));
+                if ($name === '') {
+                    $name = $donor['Email'] ?? 'Donor';
+                }
                 $donationCount = (int) $donor['Donation_Count'];
                 $countLabel = donor_count_label($donationCount);
                 $avatarUrl = donor_avatar_url($donor);

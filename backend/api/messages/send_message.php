@@ -4,6 +4,7 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../helpers/messages_contacts.php';
+require_once __DIR__ . '/../../helpers/support_notifications.php';
 
 if (!isset($_SESSION['Account_ID'])) {
     http_response_code(401);
@@ -33,17 +34,18 @@ if (strlen($body) > 2000) {
     exit();
 }
 
-if (!get_message_contact($pdo, $contactId)) {
+$contact = get_message_contact($pdo, $contactId);
+if (!$contact) {
     http_response_code(404);
     echo json_encode(['success' => false, 'message' => 'Contact not found']);
     exit();
 }
 
 $stmt = $pdo->prepare("
-    INSERT INTO MESSAGES (Sender_Account_ID, Receiver_Account_ID, Body)
-    VALUES (?, ?, ?)
+    INSERT INTO MESSAGES (Sender_Account_ID, Receiver_Account_ID, Body, Created_At)
+    VALUES (?, ?, ?, ?)
 ");
-$stmt->execute([$currentAccountId, $contactId, $body]);
+$stmt->execute([$currentAccountId, $contactId, $body, gmdate('Y-m-d H:i:s')]);
 
 $messageId = (int) $pdo->lastInsertId();
 $stmt = $pdo->prepare("
@@ -54,6 +56,18 @@ $stmt = $pdo->prepare("
 $stmt->execute([$messageId]);
 $message = $stmt->fetch();
 
+$senderType = $_SESSION['Account_Type'] ?? '';
+if (in_array($senderType, ['PA', 'FA'], true) && ($contact['account_type'] ?? '') === 'AA') {
+    $senderName = support_account_display_name($pdo, $currentAccountId);
+    notify_admin_accounts(
+        $pdo,
+        'support_chat',
+        "{$senderName} sent a new support chat message.",
+        '/frontend/views/admin/support.php',
+        $contactId
+    );
+}
+
 echo json_encode([
     'success' => true,
     'message' => [
@@ -61,7 +75,8 @@ echo json_encode([
         'body' => $message['Body'],
         'is_mine' => true,
         'created_at' => $message['Created_At'],
-        'time_label' => date('g:i A', strtotime($message['Created_At'])),
+        'date_label' => message_date_label($message['Created_At']),
+        'time_label' => message_clock_label($message['Created_At']),
         'is_read' => (bool) $message['Is_Read'],
     ],
 ]);

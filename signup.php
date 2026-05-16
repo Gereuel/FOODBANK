@@ -1,4 +1,24 @@
-<?php require_once __DIR__ . '/backend/config/app.php'; ?>
+<?php
+require_once __DIR__ . '/backend/config/app.php';
+
+$signupError = $_GET['error'] ?? '';
+$signupErrorMessage = '';
+
+if ($signupError === 'email_exists') {
+    $signupErrorMessage = 'This email is already registered. Please use another email or log in to your existing account.';
+} elseif ($signupError === 'registration_failed') {
+    $signupErrorMessage = 'We could not complete your registration. Please check your details and try again.';
+} elseif ($signupError === 'invalid_account_type') {
+    $signupErrorMessage = 'Please select a valid account type.';
+} elseif ($signupError === 'underage') {
+    $signupErrorMessage = 'You must be at least 18 years old to create an account.';
+} elseif ($signupError === 'invalid_birthdate') {
+    $signupErrorMessage = 'Please enter a valid birthdate.';
+}
+
+$accountStepErrors = ['email_exists', 'registration_failed', 'invalid_account_type'];
+$showAccountStep = in_array($signupError, $accountStepErrors, true);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,8 +44,8 @@
 
     <!-- PROGRESS BAR -->
     <div class="progress" id="progressBar">
-      <span class="active" id="dot1"></span>
-      <span id="dot2"></span>
+      <span class="<?php echo $showAccountStep ? '' : 'active'; ?>" id="dot1"></span>
+      <span class="<?php echo $showAccountStep ? 'active' : ''; ?>" id="dot2"></span>
     </div>
 
     <form action="backend/controllers/auth/process_signup.php" method="POST" id="signupForm">
@@ -33,9 +53,15 @@
       <!-- ======================== -->
       <!-- STEP 1: PERSONAL INFO    -->
       <!-- ======================== -->
-      <div class="step active" id="step1">
+      <div class="step <?php echo $showAccountStep ? '' : 'active'; ?>" id="step1">
         <h2 class="title">Personal Information</h2>
         <p class="desc">Tell us about yourself</p>
+
+        <?php if ($signupErrorMessage && !$showAccountStep): ?>
+          <div class="signup-notice" role="alert">
+            <?php echo htmlspecialchars($signupErrorMessage, ENT_QUOTES, 'UTF-8'); ?>
+          </div>
+        <?php endif; ?>
 
         <label>First Name</label>
         <input type="text" name="first_name" placeholder="Enter first name" required>
@@ -62,7 +88,7 @@
         <textarea name="address" placeholder="Enter your complete address" required></textarea>
 
         <label>Birthdate</label>
-        <input type="date" name="birthdate" required>
+        <input type="date" name="birthdate" max="<?php echo date('Y-m-d', strtotime('-18 years')); ?>" required>
 
         <button type="button" class="btn" onclick="goToStep2()">Next</button>
 
@@ -78,9 +104,15 @@
       <!-- ======================== -->
       <!-- STEP 2: ACCOUNT DETAILS  -->
       <!-- ======================== -->
-      <div class="step" id="step2">
+      <div class="step <?php echo $showAccountStep ? 'active' : ''; ?>" id="step2">
         <h2 class="title">Account Details</h2>
         <p class="desc">Set up your account credentials</p>
+
+        <?php if ($signupErrorMessage && $showAccountStep): ?>
+          <div class="signup-notice" role="alert">
+            <?php echo htmlspecialchars($signupErrorMessage, ENT_QUOTES, 'UTF-8'); ?>
+          </div>
+        <?php endif; ?>
 
         <label>Account Type</label>
         <select name="account_type" required>
@@ -130,6 +162,12 @@
       return;
     }
 
+    if (!isAtLeast18(birthdate.value)) {
+      alert('You must be at least 18 years old to create an account.');
+      birthdate.focus();
+      return;
+    }
+
     document.getElementById('step1').classList.remove('active');
     document.getElementById('step2').classList.add('active');
     document.getElementById('dot1').classList.remove('active');
@@ -146,6 +184,25 @@
     document.getElementById('dot1').classList.add('active');
 
     document.querySelector('.right').scrollTop = 0;
+  }
+
+  function isAtLeast18(dateValue) {
+    const birthDate = new Date(dateValue + 'T00:00:00');
+
+    if (Number.isNaN(birthDate.getTime())) {
+      return false;
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    const dayDifference = today.getDate() - birthDate.getDate();
+
+    if (monthDifference < 0 || (monthDifference === 0 && dayDifference < 0)) {
+      age--;
+    }
+
+    return age >= 18;
   }
 
   function toggleCustomSuffix() {

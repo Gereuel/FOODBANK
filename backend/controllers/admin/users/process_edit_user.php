@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../helpers/text_format.php';
 
 // Security check
 if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
@@ -12,7 +13,7 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
 $required = ['user_id', 'account_id', 'account_type', 'email', 'phone_number', 'first_name', 'last_name', 'address', 'birthdate'];
 foreach ($required as $field) {
     if (empty($_POST[$field])) {
-        header("Location: /foodbank/frontend/views/admin/admin_index.php?error=missing_fields");
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=missing_fields");
         exit();
     }
 }
@@ -23,29 +24,29 @@ $account_id   = intval($_POST['account_id']);
 $account_type = trim($_POST['account_type']);
 $email        = trim($_POST['email']);
 $phone        = trim($_POST['phone_number']);
-$first_name   = trim($_POST['first_name']);
-$middle_name  = trim($_POST['middle_name'] ?? '');
-$last_name    = trim($_POST['last_name']);
+$first_name   = format_name_or_address($_POST['first_name']);
+$middle_name  = format_name_or_address($_POST['middle_name'] ?? '');
+$last_name    = format_name_or_address($_POST['last_name']);
 $suffix       = trim($_POST['suffix'] ?? '');
-$address      = trim($_POST['address']);
+$address      = format_name_or_address($_POST['address']);
 $birthdate    = trim($_POST['birthdate']);
 
 // Validate account type
 $allowed_types = ['PA', 'FA', 'AA'];
 if (!in_array($account_type, $allowed_types)) {
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=invalid_account_type");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=invalid_account_type");
     exit();
 }
 
 // Validate email format
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=invalid_email");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=invalid_email");
     exit();
 }
 
 // Validate birthdate format
 if (!strtotime($birthdate)) {
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=invalid_birthdate");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=invalid_birthdate");
     exit();
 }
 
@@ -57,7 +58,7 @@ try {
     ");
     $stmt_check->execute([$email, $account_id]);
     if ($stmt_check->fetch()) {
-        header("Location: /foodbank/frontend/views/admin/admin_index.php?error=email_taken");
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=email_taken");
         exit();
     }
 
@@ -103,13 +104,13 @@ try {
 
     $pdo->commit();
 
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?success=user_updated");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&success=user_updated");
     exit();
 
 } catch (PDOException $e) {
     $pdo->rollBack();
     error_log("Edit User Error: " . $e->getMessage());
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=db_error");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=db_error");
     exit();
 }
 ?>

@@ -16,6 +16,7 @@
                 <p>Delete donation record <strong id="delete-donation-tracking">—</strong>?</p>
             </div>
             <form action="/foodbank/backend/controllers/admin/donations/process_delete_donation.php" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
                 <input type="hidden" name="donation_id" id="delete-donation-id">
                 <div class="modal-footer">
                     <button type="button" onclick="closeDeleteDonationModal()">Cancel</button>

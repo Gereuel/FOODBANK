@@ -8,9 +8,14 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     exit();
 }
 
+if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=invalid_request");
+    exit();
+}
+
 // Validate required fields
 if (empty($_POST['user_id']) || empty($_POST['account_id'])) {
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=missing_fields");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=missing_fields");
     exit();
 }
 
@@ -20,7 +25,7 @@ $deletion_request_id = intval($_POST['deletion_request_id'] ?? 0);
 
 // Prevent admin from deleting their own account
 if ($user_id === intval($_SESSION['User_ID'])) {
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=cannot_delete_self");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=cannot_delete_self");
     exit();
 }
 
@@ -51,13 +56,13 @@ try {
     $pdo->commit();
 
     $success = $deletion_request_id > 0 ? 'deletion_request_approved' : 'user_deleted';
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?success={$success}");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&success={$success}");
     exit();
 
 } catch (PDOException $e) {
     $pdo->rollBack();
     error_log("Delete User Error: " . $e->getMessage());
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=db_error");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=db_error");
     exit();
 }
 ?>

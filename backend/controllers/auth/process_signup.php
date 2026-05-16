@@ -1,14 +1,15 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../helpers/text_format.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
-    $first_name = $_POST['first_name'];
+    $first_name = format_name_or_address($_POST['first_name']);
     // FIX 1: Use the Null Coalescing Operator (??) to safely handle missing form data
-    $middle_name = $_POST['middle_name'] ?? null; 
-    $last_name = $_POST['last_name'];
+    $middle_name = isset($_POST['middle_name']) ? format_name_or_address($_POST['middle_name']) : null;
+    $last_name = format_name_or_address($_POST['last_name']);
     $suffix = $_POST['suffix'] ?? null; 
-    $address = $_POST['address'];
+    $address = format_name_or_address($_POST['address']);
     $birthdate = $_POST['birthdate'];
     
     $account_type = $_POST['account_type']; // 'PA' or 'FA' or 'AA'
@@ -17,6 +18,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (!in_array($account_type, ['PA', 'FA', 'AA'], true)) {
         header("Location: ../../../signup.php?error=invalid_account_type");
+        exit();
+    }
+
+    try {
+        $birthdateValue = new DateTime($birthdate);
+        $minimumBirthdate = (new DateTime('today'))->modify('-18 years');
+
+        if ($birthdateValue > $minimumBirthdate) {
+            header("Location: ../../../signup.php?error=underage");
+            exit();
+        }
+    } catch (Exception $e) {
+        header("Location: ../../../signup.php?error=invalid_birthdate");
         exit();
     }
     
@@ -90,7 +104,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        die("Registration Failed: " . $e->getMessage());
+
+        $isDuplicateEmail = ($e->errorInfo[1] ?? null) === 1062
+            && stripos($e->getMessage(), 'Email') !== false;
+
+        if ($isDuplicateEmail) {
+            header("Location: ../../../signup.php?error=email_exists");
+            exit();
+        }
+
+        error_log("Registration failed: " . $e->getMessage());
+        header("Location: ../../../signup.php?error=registration_failed");
+        exit();
     }
 } else {
     header("Location: ../../../signup.php");

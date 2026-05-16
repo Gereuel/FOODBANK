@@ -84,6 +84,7 @@ try {
 
     <link rel="stylesheet" href="../../assets/css/components/foodbank/fb_navigation.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../../assets/css/components/foodbank/fb_header.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../../assets/css/components/support/support_widget.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../../assets/css/pages/individual/pa_messages.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../../assets/css/pages/foodbank/fb_dashboard.css?v=<?php echo time(); ?>">
 
@@ -104,6 +105,9 @@ try {
         </main>
     </div>
 
+    <?php include('../../components/support/support_widget.php'); ?>
+
     <script src="../../assets/js/fb-app.js?v=<?php echo time(); ?>"></script>
+    <script src="../../assets/js/support-widget.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

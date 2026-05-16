@@ -7,6 +7,11 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     exit();
 }
 
+if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=donations&error=invalid_request");
+    exit();
+}
+
 if (empty($_POST['donation_id'])) {
     header("Location: /foodbank/frontend/views/admin/admin_index.php?page=donations&error=missing_fields");
     exit();

@@ -100,6 +100,15 @@
     line-height: 1;
 }
 
+.stat-card .value-note {
+    display: inline-block;
+    margin-left: var(--spacing-sm);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-sub);
+    vertical-align: middle;
+}
+
 .stat-card .value.green {
     color: var(--green-main);
 }
@@ -844,6 +853,31 @@
     margin: 8px 0 0;
     color: #6b7280;
     font-size: 12px;
+}
+
+.map-image-preview {
+    display: grid;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-sm) 0 var(--spacing-md);
+}
+
+.map-image-preview[hidden] {
+    display: none;
+}
+
+.map-image-preview img {
+    width: 100%;
+    max-height: 240px;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+}
+
+.map-image-preview a {
+    color: var(--green-main);
+    font-size: var(--font-size-sm);
+    text-decoration: none;
 }
 
 .modal-footer {

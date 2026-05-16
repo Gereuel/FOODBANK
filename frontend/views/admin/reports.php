@@ -7,9 +7,14 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
 }
 
 // ── Date range filter ─────────────────────────────────────────
-$range  = $_GET['range'] ?? '30';
-$days   = in_array($range, ['7','30','90','365']) ? (int)$range : 30;
-$cutoff = date('Y-m-d', strtotime("-{$days} days"));
+$range = $_GET['range'] ?? '30';
+$days = in_array($range, ['7','30','90','365'], true) ? (int) $range : 30;
+$reportTz = new DateTimeZone('Asia/Manila');
+$today = new DateTimeImmutable('today', $reportTz);
+$rangeStart = $today->modify('-' . ($days - 1) . ' days');
+$rangeEnd = $today->modify('+1 day');
+$rangeStartSql = $rangeStart->format('Y-m-d 00:00:00');
+$rangeEndSql = $rangeEnd->format('Y-m-d 00:00:00');
 
 $range_labels = [
     7   => 'Last 7 Days',
@@ -18,6 +23,29 @@ $range_labels = [
     365 => 'Last Year',
 ];
 $range_label = $range_labels[$days] ?? 'Last 30 Days';
+
+function report_week_start(DateTimeImmutable $date): DateTimeImmutable
+{
+    return $date->modify('-' . ((int) $date->format('N') - 1) . ' days');
+}
+
+function report_week_buckets(DateTimeImmutable $start, DateTimeImmutable $end): array
+{
+    $buckets = [];
+    $cursor = report_week_start($start);
+    $last = report_week_start($end->modify('-1 day'));
+
+    while ($cursor <= $last) {
+        $key = $cursor->format('o-W');
+        $buckets[$key] = [
+            'label' => $cursor->format('M j'),
+            'count' => 0,
+        ];
+        $cursor = $cursor->modify('+1 week');
+    }
+
+    return $buckets;
+}
 
 try {
     // ── Donation summary KPIs ─────────────────────────────────
@@ -28,8 +56,9 @@ try {
             COUNT(DISTINCT FoodBank_ID)      AS active_foodbanks
         FROM DONATIONS
         WHERE Date_Donated >= ?
+          AND Date_Donated < ?
     ");
-    $stmt->execute([$cutoff]);
+    $stmt->execute([$rangeStartSql, $rangeEndSql]);
     $donation_summary = $stmt->fetch();
 
     // ── Donations by type ─────────────────────────────────────
@@ -37,56 +66,57 @@ try {
         SELECT Item_Type AS Donation_Type, COUNT(*) AS count
         FROM DONATIONS
         WHERE Date_Donated >= ?
+          AND Date_Donated < ?
         GROUP BY Item_Type
         ORDER BY count DESC
     ");
-    $stmt->execute([$cutoff]);
+    $stmt->execute([$rangeStartSql, $rangeEndSql]);
     $donations_by_type = $stmt->fetchAll();
 
     // ── Donation trend (weekly) ───────────────────────────────
     $stmt = $pdo->prepare("
         SELECT
-            DATE_FORMAT(Date_Donated, '%Y-%u') AS week_key,
-            MIN(DATE(Date_Donated))            AS week_start,
+            DATE_FORMAT(Date_Donated, '%x-%v') AS week_key,
             COUNT(*)                           AS count
         FROM DONATIONS
         WHERE Date_Donated >= ?
+          AND Date_Donated < ?
         GROUP BY week_key
         ORDER BY week_key ASC
     ");
-    $stmt->execute([$cutoff]);
+    $stmt->execute([$rangeStartSql, $rangeEndSql]);
     $donation_trend = $stmt->fetchAll();
 
     // ── User activity ─────────────────────────────────────────
     $stmt = $pdo->prepare("
         SELECT
             COUNT(*)                                                       AS total_users,
-            SUM(CASE WHEN Date_Created >= ? THEN 1 ELSE 0 END)            AS new_users,
+            SUM(CASE WHEN Date_Created >= ? AND Date_Created < ? THEN 1 ELSE 0 END) AS new_users,
             SUM(CASE WHEN Status = 'Active'           THEN 1 ELSE 0 END)  AS active_users,
             SUM(CASE WHEN Status = 'Inactive'         THEN 1 ELSE 0 END)  AS disabled_users,
             SUM(CASE WHEN Account_Type = 'PA'         THEN 1 ELSE 0 END)  AS donors,
             SUM(CASE WHEN Account_Type IN ('AA','FA')  THEN 1 ELSE 0 END) AS admins
         FROM ACCOUNTS
     ");
-    $stmt->execute([$cutoff]);
+    $stmt->execute([$rangeStartSql, $rangeEndSql]);
     $user_stats = $stmt->fetch();
 
     // ── Registrations per week ────────────────────────────────
     $stmt = $pdo->prepare("
         SELECT
-            DATE_FORMAT(Date_Created, '%Y-%u') AS week_key,
-            MIN(DATE(Date_Created))            AS week_start,
+            DATE_FORMAT(Date_Created, '%x-%v') AS week_key,
             COUNT(*)                           AS count
         FROM ACCOUNTS
         WHERE Date_Created >= ?
+          AND Date_Created < ?
         GROUP BY week_key
         ORDER BY week_key ASC
     ");
-    $stmt->execute([$cutoff]);
+    $stmt->execute([$rangeStartSql, $rangeEndSql]);
     $reg_trend = $stmt->fetchAll();
 
     // ── Food bank activity ────────────────────────────────────
-    $stmt = $pdo->query("
+    $stmt = $pdo->prepare("
         SELECT
             fb.FoodBank_ID,
             fb.Organization_Name AS Name,
@@ -94,9 +124,12 @@ try {
             COUNT(d.Donation_ID) AS donations_received
         FROM FOOD_BANKS fb
         LEFT JOIN DONATIONS d ON d.FoodBank_ID = fb.FoodBank_ID
+            AND d.Date_Donated >= ?
+            AND d.Date_Donated < ?
         GROUP BY fb.FoodBank_ID, fb.Organization_Name, fb.Physical_Address
         ORDER BY donations_received DESC
     ");
+    $stmt->execute([$rangeStartSql, $rangeEndSql]);
     $foodbank_inventory = $stmt->fetchAll();
 
     // ── Top donors ────────────────────────────────────────────
@@ -109,11 +142,12 @@ try {
         JOIN ACCOUNTS a ON a.Account_ID = d.Donor_Account_ID
         JOIN USERS    u ON u.User_ID    = a.User_ID
         WHERE d.Date_Donated >= ?
+          AND d.Date_Donated < ?
         GROUP BY d.Donor_Account_ID, donor_name, a.Email
         ORDER BY donation_count DESC
         LIMIT 5
     ");
-    $stmt->execute([$cutoff]);
+    $stmt->execute([$rangeStartSql, $rangeEndSql]);
     $top_donors = $stmt->fetchAll();
 
 } catch (PDOException $e) {
@@ -121,18 +155,28 @@ try {
 }
 
 // ── Chart data ────────────────────────────────────────────────
-$trend_labels = array_map(function ($r) {
-    return date('M j', strtotime($r['week_start']));
-}, $donation_trend);
-$trend_counts = array_column($donation_trend, 'count');
-$reg_labels   = array_map(function ($r) {
-    return date('M j', strtotime($r['week_start']));
-}, $reg_trend);
-$reg_counts   = array_column($reg_trend, 'count');
+$donation_buckets = report_week_buckets($rangeStart, $rangeEnd);
+foreach ($donation_trend as $row) {
+    if (isset($donation_buckets[$row['week_key']])) {
+        $donation_buckets[$row['week_key']]['count'] = (int) $row['count'];
+    }
+}
+
+$registration_buckets = report_week_buckets($rangeStart, $rangeEnd);
+foreach ($reg_trend as $row) {
+    if (isset($registration_buckets[$row['week_key']])) {
+        $registration_buckets[$row['week_key']]['count'] = (int) $row['count'];
+    }
+}
+
+$trend_labels = array_column($donation_buckets, 'label');
+$trend_counts = array_column($donation_buckets, 'count');
+$reg_labels   = array_column($registration_buckets, 'label');
+$reg_counts   = array_column($registration_buckets, 'count');
 $type_labels  = array_column($donations_by_type, 'Donation_Type');
 $type_counts  = array_column($donations_by_type, 'count');
 
-$max_donations = max(1, ...array_column($foodbank_inventory, 'donations_received'));
+$total_foodbank_donations = array_sum(array_map('intval', array_column($foodbank_inventory, 'donations_received')));
 ?>
 
 <link rel="stylesheet" href="/foodbank/frontend/assets/css/pages/admin/reports.css">
@@ -282,7 +326,7 @@ $max_donations = max(1, ...array_column($foodbank_inventory, 'donations_received
 
     <div class="rpt-section-label">
         <span class="rpt-section-title">Food Bank Activity</span>
-        <span class="badge badge-active">All Time</span>
+        <span class="badge badge-active"><?= htmlspecialchars($range_label) ?></span>
     </div>
 
     <div class="table-card">
@@ -309,8 +353,8 @@ $max_donations = max(1, ...array_column($foodbank_inventory, 'donations_received
                     </tr>
                     <?php else: ?>
                     <?php foreach ($foodbank_inventory as $i => $fb):
-                        $pct = $max_donations > 0
-                            ? round($fb['donations_received'] / $max_donations * 100)
+                        $pct = $total_foodbank_donations > 0
+                            ? round($fb['donations_received'] / $total_foodbank_donations * 100)
                             : 0;
                     ?>
                     <tr>

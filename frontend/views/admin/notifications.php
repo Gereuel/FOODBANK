@@ -134,7 +134,7 @@ window.initNotificationsPage = function() {
     };
 
     window.deleteNotification = async function(id) {
-        // Placeholder for delete API if implemented
+        await fetch(appUrl(`/backend/api/notifications/delete_notification.php?id=${id}`), { method: 'POST' });
         loadComponent('main-display', appUrl('/frontend/views/admin/notifications.php?page=<?= $page ?>'));
     };
 

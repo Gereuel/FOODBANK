@@ -219,6 +219,23 @@
         `;
     }
 
+    function renderMessagesWithDates(messages) {
+        let lastDateLabel = '';
+
+        return messages.map(message => {
+            const dateLabel = message.date_label || '';
+            const divider = dateLabel && dateLabel !== lastDateLabel
+                ? `<div class="chat-date">${escapeHtml(dateLabel)}</div>`
+                : '';
+
+            if (dateLabel) {
+                lastDateLabel = dateLabel;
+            }
+
+            return divider + renderChatMessage(message);
+        }).join('');
+    }
+
     function openChat(contactId) {
         fetch(`${apiBase}/get_messages.php?contact_id=${encodeURIComponent(contactId)}`)
             .then(response => response.json())
@@ -232,7 +249,7 @@
                 profileCard.innerHTML = renderProfile(activeContact);
                 profileCard.hidden = true;
                 chatBody.innerHTML = data.messages.length
-                    ? '<div class="chat-date">Today</div>' + data.messages.map(renderChatMessage).join('')
+                    ? renderMessagesWithDates(data.messages)
                     : '<div class="chat-empty">No messages yet.</div>';
                 overlay.classList.add('is-open');
                 overlay.setAttribute('aria-hidden', 'false');
@@ -272,7 +289,14 @@
 
                 const empty = chatBody.querySelector('.chat-empty');
                 if (empty) {
-                    chatBody.innerHTML = '<div class="chat-date">Today</div>';
+                    chatBody.innerHTML = data.message.date_label
+                        ? `<div class="chat-date">${escapeHtml(data.message.date_label)}</div>`
+                        : '';
+                } else {
+                    const existingDates = Array.from(chatBody.querySelectorAll('.chat-date')).map(date => date.textContent.trim());
+                    if (data.message.date_label && !existingDates.includes(data.message.date_label)) {
+                        chatBody.insertAdjacentHTML('beforeend', `<div class="chat-date">${escapeHtml(data.message.date_label)}</div>`);
+                    }
                 }
 
                 chatBody.insertAdjacentHTML('beforeend', renderChatMessage(data.message));

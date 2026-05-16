@@ -60,6 +60,10 @@
                 </div>
                 <p class="field-hint">Select every day this food bank is open.</p>
                 <label>Map Screenshot (Optional)</label>
+                <div class="map-image-preview" id="efb-map-preview" hidden>
+                    <img src="" alt="Current map screenshot" id="efb-map-preview-img">
+                    <a href="#" target="_blank" rel="noopener" id="efb-map-preview-link">Open current map screenshot</a>
+                </div>
                 <input type="file" name="map_image" id="efb-map-image" accept="image/png,image/jpeg,image/webp">
                 <p class="field-hint">Upload a new screenshot only if you want to replace the current map image.</p>
 

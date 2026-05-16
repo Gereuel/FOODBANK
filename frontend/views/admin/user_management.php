@@ -8,6 +8,10 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     die("Unauthorized Access: Only administrators can access this page.");
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Pagination
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $per_page = 10;
@@ -167,7 +171,8 @@ try {
     }
     
     $total_foodbank = $stats['FA'] ?? 0;
-    $total_individual = $total_users;
+    $total_individual = $stats['PA'] ?? 0;
+    $total_admin = $stats['AA'] ?? 0;
     $current_page = $page;
     
 } catch (PDOException $e) {
@@ -180,6 +185,7 @@ try {
         <?php
         $messages = [
             'user_updated' => 'User has been updated successfully.',
+            'user_added' => 'User has been added successfully.',
             'user_deleted' => 'User has been deleted successfully.',
             'deletion_request_approved' => 'Deletion request has been approved and the account was deleted.',
             'deletion_request_rejected' => 'Deletion request has been rejected.',
@@ -198,6 +204,7 @@ try {
             'invalid_email'        => 'Please enter a valid email address.',
             'invalid_birthdate'    => 'Please enter a valid birthdate.',
             'email_taken'          => 'That email address is already in use.',
+            'invalid_request'      => 'Invalid request. Please try again.',
             'db_error'             => 'A database error occurred. Please try again.',
             'cannot_delete_self'   => 'You cannot delete your own account.',
         ];
@@ -221,10 +228,13 @@ try {
     <div class="stat-row">
         <div class="stat-card">
             <div class="label">Total Users</div>
-            <div class="value"><?= $total_users ?></div>
+            <div class="value">
+                <?= $total_users ?>
+                <span class="value-note">(+ <?= $total_admin ?> admin Account<?= $total_admin === 1 ? '' : 's' ?>)</span>
+            </div>
         </div>
         <div class="stat-card">
-            <div class="label">Total Individual</div>
+            <div class="label">Total Donors</div>
             <div class="value"><?= $total_individual ?></div>
         </div>
         <div class="stat-card">
@@ -283,7 +293,7 @@ try {
                                 <input type="checkbox" name="status" value="active" <?= in_array('active', array_map('strtolower', $selectedStatuses), true) ? 'checked' : '' ?>> Active
                             </label>
                             <label class="filter-option">
-                                <input type="checkbox" name="status" value="disabled" <?= in_array('disabled', array_map('strtolower', $selectedStatuses), true) ? 'checked' : '' ?>> Disabled
+                                <input type="checkbox" name="status" value="inactive" <?= in_array('inactive', array_map('strtolower', $selectedStatuses), true) ? 'checked' : '' ?>> Disabled
                             </label>
                         </div>
                     </div>
@@ -373,7 +383,7 @@ try {
                                 <?php if ($user['Deletion_Request_Status'] === 'Pending'): ?>
                                     Deletion Requested
                                 <?php else: ?>
-                                    <?= $user['Status'] === 'Disabled' ? 'Disabled' : htmlspecialchars($user['Status']) ?>
+                                    <?= $user['Status'] === 'Inactive' ? 'Disabled' : htmlspecialchars($user['Status']) ?>
                                 <?php endif; ?>
                             </span>
                         </td>

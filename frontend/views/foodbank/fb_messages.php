@@ -102,6 +102,16 @@ if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'FA
         return `<div class="chat-message chat-message--${direction}"><p>${escapeHtml(message.body)}</p><span>${escapeHtml(message.time_label || '')}</span></div>`;
     }
 
+    function renderMessagesWithDates(messages) {
+        let lastDateLabel = '';
+        return messages.map(message => {
+            const dateLabel = message.date_label || '';
+            const divider = dateLabel && dateLabel !== lastDateLabel ? `<div class="chat-date">${escapeHtml(dateLabel)}</div>` : '';
+            if (dateLabel) lastDateLabel = dateLabel;
+            return divider + renderChatMessage(message);
+        }).join('');
+    }
+
     function loadConversations() {
         fetch(`${apiBase}/get_conversations.php`).then(r => r.json()).then(data => {
             if (!data.success) throw new Error(data.message || 'Unable to load conversations');
@@ -141,7 +151,7 @@ if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'FA
             contactRole.textContent = activeContact.subtitle;
             profileCard.innerHTML = renderProfile(activeContact);
             profileCard.hidden = true;
-            chatBody.innerHTML = data.messages.length ? '<div class="chat-date">Today</div>' + data.messages.map(renderChatMessage).join('') : '<div class="chat-empty">No messages yet.</div>';
+            chatBody.innerHTML = data.messages.length ? renderMessagesWithDates(data.messages) : '<div class="chat-empty">No messages yet.</div>';
             overlay.classList.add('is-open');
             overlay.setAttribute('aria-hidden', 'false');
             document.body.classList.add('pa-chat-open');
@@ -167,7 +177,14 @@ if (!isset($_SESSION['Account_ID']) || ($_SESSION['Account_Type'] ?? '') !== 'FA
         formData.append('body', body.trim());
         fetch(`${apiBase}/send_message.php`, { method: 'POST', body: formData }).then(r => r.json()).then(data => {
             if (!data.success) throw new Error(data.message || 'Unable to send message');
-            if (chatBody.querySelector('.chat-empty')) chatBody.innerHTML = '<div class="chat-date">Today</div>';
+            if (chatBody.querySelector('.chat-empty')) {
+                chatBody.innerHTML = data.message.date_label ? `<div class="chat-date">${escapeHtml(data.message.date_label)}</div>` : '';
+            } else {
+                const existingDates = Array.from(chatBody.querySelectorAll('.chat-date')).map(date => date.textContent.trim());
+                if (data.message.date_label && !existingDates.includes(data.message.date_label)) {
+                    chatBody.insertAdjacentHTML('beforeend', `<div class="chat-date">${escapeHtml(data.message.date_label)}</div>`);
+                }
+            }
             chatBody.insertAdjacentHTML('beforeend', renderChatMessage(data.message));
             chatBody.scrollTop = chatBody.scrollHeight;
             chatInput.value = '';

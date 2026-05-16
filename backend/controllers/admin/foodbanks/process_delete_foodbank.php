@@ -6,9 +6,13 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     header("Location: ../../../../login.php?error=unauthorized"); exit();
 }
 
+if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&error=invalid_request"); exit();
+}
+
 $foodbank_id = intval($_POST['foodbank_id'] ?? 0);
 if (!$foodbank_id) {
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=missing_fields"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&error=missing_fields"); exit();
 }
 
 try {
@@ -37,11 +41,11 @@ try {
         if (file_exists($file_path)) unlink($file_path);
     }
 
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?success=foodbank_deleted"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&success=foodbank_deleted"); exit();
 
 } catch (PDOException $e) {
     $pdo->rollBack();
     error_log("Delete FoodBank Error: " . $e->getMessage());
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=db_error"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&error=db_error"); exit();
 }
 ?>

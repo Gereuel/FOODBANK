@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../helpers/text_format.php';
 
 // --- CRITICAL SECURITY CHECK ---
 // Only allow access if the user is logged in AND is an Admin ('AA')
@@ -11,11 +12,11 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // 1. Gather Personal Info
-    $first_name = $_POST['first_name'];
-    $middle_name = $_POST['middle_name'] ?? null; 
-    $last_name = $_POST['last_name'];
+    $first_name = format_name_or_address($_POST['first_name']);
+    $middle_name = isset($_POST['middle_name']) ? format_name_or_address($_POST['middle_name']) : null;
+    $last_name = format_name_or_address($_POST['last_name']);
     $suffix = $_POST['suffix'] ?? null; 
-    $address = $_POST['address'];
+    $address = format_name_or_address($_POST['address']);
     $birthdate = $_POST['birthdate'];
     
     // 2. Gather Account Info
@@ -59,9 +60,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         $new_account_id = $pdo->lastInsertId();
         
-        // Save the changes
-        $pdo->commit();
-
         // Create a notification for the admin
         $stmt_notif = $pdo->prepare("
             INSERT INTO NOTIFICATIONS (Account_ID, Type, Message, Link)
@@ -69,18 +67,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ");
         $notif_message = "New user '{$first_name} {$last_name}' ({$account_type}) registered.";
         $stmt_notif->execute([$_SESSION['Account_ID'], 'new_user', $notif_message, app_url('/frontend/views/admin/user_management.php')]);
+
+        $pdo->commit();
         
-        // Redirect back to the admin dashboard with a success message
-        header("Location: /foodbank/frontend/views/admin/admin_index.php?status=user_added");
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&success=user_added");
         exit();
 
     } catch (PDOException $e) {
-        $pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         die("Account Creation Failed: " . $e->getMessage());
     }
 } else {
     // If someone tries to access this file without submitting a form
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=access_denied");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=users&error=access_denied");
     exit();
 }
 ?>

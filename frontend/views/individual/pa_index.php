@@ -61,6 +61,7 @@ try {
     <!-- Component CSS -->
     <link rel="stylesheet" href="../../assets/css/components/individual/indi_navigation.css">
     <link rel="stylesheet" href="../../assets/css/components/individual/indi_header.css">
+    <link rel="stylesheet" href="../../assets/css/components/support/support_widget.css?v=<?php echo time(); ?>">
 
     <!-- Page CSS (home page) -->
     <link rel="stylesheet" href="../../assets/css/pages/individual/pa_foodbanks.css?v=<?php echo time(); ?>">
@@ -127,8 +128,11 @@ try {
 
     </div>
 
+    <?php include('../../components/support/support_widget.php'); ?>
+
     <!-- PA Main JS -->
     <script src="../../assets/js/Individual/pa-app.js"></script>
+    <script src="../../assets/js/support-widget.js?v=<?php echo time(); ?>"></script>
 
     <!-- Map JS-->
     <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>

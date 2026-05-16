@@ -31,7 +31,7 @@ function get_message_contact(PDO $pdo, int $accountId): ?array
         LEFT JOIN FOOD_BANKS fb ON fb.Account_ID = a.Account_ID
         WHERE a.Account_ID = ?
           AND a.Status = 'Active'
-          AND a.Account_Type IN ('PA', 'FA')
+          AND a.Account_Type IN ('PA', 'FA', 'AA')
         LIMIT 1
     ");
     $stmt->execute([$accountId]);
@@ -47,6 +47,7 @@ function get_message_contact(PDO $pdo, int $accountId): ?array
 function format_message_contact(array $row): array
 {
     $isFoodBank = $row['Account_Type'] === 'FA';
+    $isAdmin = $row['Account_Type'] === 'AA';
     $name = $isFoodBank
         ? ($row['Organization_Name'] ?: trim(($row['First_Name'] ?? '') . ' ' . ($row['Last_Name'] ?? '')))
         : trim(($row['First_Name'] ?? '') . ' ' . ($row['Last_Name'] ?? ''));
@@ -72,7 +73,7 @@ function format_message_contact(array $row): array
         'account_id' => (int) $row['Account_ID'],
         'account_type' => $row['Account_Type'],
         'name' => $name,
-        'subtitle' => $isFoodBank ? 'Food Bank' : 'Individual',
+        'subtitle' => $isAdmin ? 'Admin Support' : ($isFoodBank ? 'Food Bank' : 'Individual'),
         'email' => $email,
         'phone' => $phone,
         'address' => $address,
@@ -118,14 +119,56 @@ function contact_initials(string $name): string
     return $initials !== '' ? $initials : '??';
 }
 
-function message_time_label(string $dateTime): string
+function message_datetime(string $dateTime): ?DateTimeImmutable
 {
-    $timestamp = strtotime($dateTime);
-    if (!$timestamp) {
+    try {
+        return (new DateTimeImmutable($dateTime, new DateTimeZone('UTC')))
+            ->setTimezone(new DateTimeZone('Asia/Manila'));
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
+function message_clock_label(string $dateTime): string
+{
+    $messageTime = message_datetime($dateTime);
+    if (!$messageTime) {
         return '';
     }
 
-    $diff = time() - $timestamp;
+    return $messageTime->format('g:i A');
+}
+
+function message_date_label(string $dateTime): string
+{
+    $messageTime = message_datetime($dateTime);
+    if (!$messageTime) {
+        return '';
+    }
+
+    $today = new DateTimeImmutable('today', new DateTimeZone('Asia/Manila'));
+    $messageDate = $messageTime->setTime(0, 0);
+
+    if ($messageDate == $today) {
+        return 'Today';
+    }
+
+    if ($messageDate == $today->modify('-1 day')) {
+        return 'Yesterday';
+    }
+
+    return $messageTime->format('M j, Y');
+}
+
+function message_time_label(string $dateTime): string
+{
+    $messageTime = message_datetime($dateTime);
+    if (!$messageTime) {
+        return '';
+    }
+
+    $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Manila'));
+    $diff = $now->getTimestamp() - $messageTime->getTimestamp();
     if ($diff < 60) {
         return 'Just now';
     }
@@ -136,5 +179,5 @@ function message_time_label(string $dateTime): string
         return floor($diff / 3600) . 'hrs ago';
     }
 
-    return date('M j', $timestamp);
+    return $messageTime->format('M j');
 }

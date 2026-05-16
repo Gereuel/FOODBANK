@@ -8,7 +8,7 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
 
 $foodbank_id = intval($_POST['foodbank_id'] ?? 0);
 if (!$foodbank_id) {
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=missing_fields"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&error=missing_fields"); exit();
 }
 
 function normalizeOperatingDays($selectedDays): string {
@@ -68,7 +68,7 @@ function uploadMapImage(): ?string {
     $allowed = ['jpg', 'jpeg', 'png', 'webp'];
 
     if (!in_array($ext, $allowed, true)) {
-        header("Location: /foodbank/frontend/views/admin/admin_index.php?error=invalid_file"); exit();
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&error=invalid_file"); exit();
     }
 
     $uploadDir = app_path('uploads/foodbank_maps/');
@@ -78,7 +78,7 @@ function uploadMapImage(): ?string {
 
     $filename = uniqid('map_', true) . '.' . $ext;
     if (!move_uploaded_file($_FILES['map_image']['tmp_name'], $uploadDir . $filename)) {
-        header("Location: /foodbank/frontend/views/admin/admin_index.php?error=upload_failed"); exit();
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&error=upload_failed"); exit();
     }
 
     return app_url('/uploads/foodbank_maps/' . $filename);
@@ -102,7 +102,7 @@ $mgr_address      = trim($_POST['manager_address'] ?? '');
 $map_image_url    = uploadMapImage();
 
 if ($operating_days === '') {
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=missing_fields"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&error=missing_fields"); exit();
 }
 
 try {
@@ -112,7 +112,7 @@ try {
     $stmt_check = $pdo->prepare("SELECT FoodBank_ID FROM FOOD_BANKS WHERE Org_Email = ? AND FoodBank_ID != ?");
     $stmt_check->execute([$org_email, $foodbank_id]);
     if ($stmt_check->fetch()) {
-        header("Location: /foodbank/frontend/views/admin/admin_index.php?error=email_taken"); exit();
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&error=email_taken"); exit();
     }
 
     $mapSql = $map_image_url ? ", Map_Image_URL = ?" : "";
@@ -152,10 +152,10 @@ try {
     $params[] = $foodbank_id;
     $stmt->execute($params);
 
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?success=foodbank_updated"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&success=foodbank_updated"); exit();
 
 } catch (PDOException $e) {
     error_log("Edit FoodBank Error: " . $e->getMessage());
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=db_error"); exit();
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=foodbanks&error=db_error"); exit();
 }
 ?>

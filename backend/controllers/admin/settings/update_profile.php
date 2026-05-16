@@ -1,13 +1,14 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../helpers/text_format.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['Account_ID'])) {
-    $first_name  = $_POST['first_name'];
-    $last_name   = $_POST['last_name'];
-    $middle_name = $_POST['middle_name'] ?? null;
+    $first_name  = format_name_or_address($_POST['first_name']);
+    $last_name   = format_name_or_address($_POST['last_name']);
+    $middle_name = isset($_POST['middle_name']) ? format_name_or_address($_POST['middle_name']) : null;
     $suffix      = $_POST['suffix'] ?? null;
-    $address     = $_POST['address'];
+    $address     = format_name_or_address($_POST['address']);
     $birthdate   = $_POST['birthdate'];
 
     try {
@@ -23,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['Account_ID'])) {
         $stmt->execute([$first_name, $middle_name, $last_name, $suffix, $address, $birthdate, $_SESSION['Account_ID']]);
 
         $pdo->commit();
-        header("Location: /foodbank/frontend/views/admin/admin_index.php?status=profile_updated");
+        header("Location: /foodbank/frontend/views/admin/admin_index.php?page=settings&status=profile_updated");
         exit();
 
     } catch (PDOException $e) {
@@ -31,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['Account_ID'])) {
         die("Update Failed: " . $e->getMessage());
     }
 } else {
-    header("Location: /foodbank/frontend/views/admin/admin_index.php?error=access_denied");
+    header("Location: /foodbank/frontend/views/admin/admin_index.php?page=settings&error=access_denied");
     exit();
 }
 ?>

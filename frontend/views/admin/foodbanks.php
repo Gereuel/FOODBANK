@@ -6,6 +6,10 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     die("Unauthorized Access.");
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $page     = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $per_page = 10;
 $offset   = ($page - 1) * $per_page;
@@ -165,6 +169,7 @@ function formatTime($time) {
         'email_taken'     => 'That email is already in use.',
         'invalid_file'    => 'Invalid file type.',
         'upload_failed'   => 'File upload failed.',
+        'invalid_request' => 'Invalid request. Please try again.',
         'db_error'        => 'A database error occurred.',
     ];
     echo $msgs[$_GET['error']] ?? 'An unexpected error occurred.'; ?>

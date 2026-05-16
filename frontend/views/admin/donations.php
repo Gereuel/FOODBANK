@@ -6,6 +6,10 @@ if (!isset($_SESSION['Account_Type']) || $_SESSION['Account_Type'] !== 'AA') {
     die("Unauthorized Access.");
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $page     = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $per_page = 10;
 $offset   = ($page - 1) * $per_page;
@@ -158,7 +162,11 @@ $status_classes = [
 
 <?php if (isset($_GET['success'])): ?>
 <div class="alert alert-success">
-    <?php $msgs = ['donation_added' => 'Donation report added successfully.'];
+    <?php $msgs = [
+        'donation_added' => 'Donation report added successfully.',
+        'donation_updated' => 'Donation report updated successfully.',
+        'donation_deleted' => 'Donation report deleted successfully.',
+    ];
     echo $msgs[$_GET['success']] ?? 'Action completed.'; ?>
 </div>
 <?php endif; ?>
@@ -166,11 +174,9 @@ $status_classes = [
 <?php if (isset($_GET['error'])): ?>
 <div class="alert alert-error">
     <?php $msgs = [
-        'donation_added'   => 'Donation report added successfully.',
-        'donation_updated' => 'Donation report updated successfully.',
-        'donation_deleted' => 'Donation report deleted successfully.',
         'missing_fields'   => 'Please fill in all required fields.',
         'invalid_data'     => 'Invalid data submitted.',
+        'invalid_request'  => 'Invalid request. Please try again.',
         'invalid_file'     => 'Invalid file type. Use JPG, PNG, or PDF.',
         'upload_failed'    => 'File upload failed. Please try again.',
         'db_error'         => 'A database error occurred. Please try again.',
